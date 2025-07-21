@@ -1,0 +1,32 @@
+{
+  "section_headers": [
+    "PROFILE", "EDUCATION", "EXPERIENCE", "SKILLS", "CONTACT",
+    "PROJECTS", "ACHIEVEMENTS", "LANGUAGES", "HOBBIES", "INTERESTS",
+    "VOLUNTEERING", "ADDITIONAL SKILLS", "FORMATION", "ACADEMIC",
+    "STUDIES", "DIPLOMAS", "QUALIFICATIONS", "SUMMARY", "OBJECTIVE"
+  ],
+  "blacklist_headers": [
+    "PROFILE", "EDUCATION", "CONTACT", "EXPERIENCE", "PROJECTS",
+    "SKILLS", "LANGUAGES", "VOLUNTEERING"
+  ],
+  "job_titles" : [
+    "engineer", "developer", "analyst", "manager", "consultant", "intern",
+    "technician", "designer", "specialist", "data", "marketing", "sales",
+    "ai", "ml", "it", "support", "finance", "administration", "assistant"
+    ],
+  "cities":["Casablanca", "Rabat", "Marrakech", "Fès", "Agadir", "Tanger", "Oujda", "Kénitra", "Salé", "Tétouan"],
+  "degrees": ["licence", "master", "phd", "bachelor", "engineer"],
+  "experience": ["experience", "professional experience", "work history", "employment"],
+  "next_section": ["education", "skills", "languages", "projects", "certifications"],
+  "skills": [
+    "python", "java", "javascript", "html", "css", "react",
+    "node.js", "sql", "docker", "git", "linux", "excel",
+    "power bi", "tensorflow", "pytorch", "machine learning",
+    "data analysis", "project management", "communication", "scrum", "C++", "c++"
+  ],
+  "skills_headers": ["skill", "technical skills", "technologies", "competencies", "competences"],
+  "education_headers": ["education", "formations", "academic background", "training", "parcours académique"],
+  "degree_keywords": ["licence", "bachelor", "master", "engineer", "diploma", "bts", "dut", "bac"]
+
+
+}
