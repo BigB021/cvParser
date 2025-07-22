@@ -30,6 +30,7 @@ class PyMuPDFLayoutAnalyzer:
             self.skills = config.get("skills", [])
             self.skills_headers = config.get("skills_headers", [])
             self.education = config.get("education_headers", [])
+            self.institutions = config.get("institutions", [])
 
     def extract_with_layout_analysis(self) -> str:
         """Extract text with layout analysis and fallback to OCR if necessary."""

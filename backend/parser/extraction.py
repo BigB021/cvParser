@@ -7,6 +7,8 @@ from typing import List, Dict, Optional
 import spacy
 import json
 from rapidfuzz import process,fuzz
+from rapidfuzz.fuzz import token_set_ratio, partial_ratio
+
 from unidecode import unidecode
 from collections import defaultdict
 import logging
@@ -149,61 +151,131 @@ def extract_job_titles(text: str, job_list: List[str], threshold=85) -> List[str
     return list(found)
 
 
-
+################################# probably needs to be put in a separate module ##############################################
 def normalize_text(text):
-    return unidecode(text.lower().strip())
+    if not text:
+        return ""
+    text = unidecode(text.lower().strip())
+    text = re.sub(r'\s+', ' ', text)
+    return text
 
-def extract_degrees(text ,analyzer=PyMuPDFLayoutAnalyzer):
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    extracted = []
-    print("[Debug] degrees dict:", analyzer.degrees)
+
+def extract_year_range(text):
+    """Extract year ranges with stronger handling."""
+    if not text:
+        return None
+
+    patterns = [
+        r'(?P<start>(19|20)\d{2})\s*[-–—to]+\s*(?P<end>present|en cours|actuel|(19|20)\d{2})',
+        r'(?P<month>(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre))\s+(?P<year>(19|20)\d{2})\s*[-–—to]+\s*(?P<endyear>present|en cours|actuel|(19|20)\d{2})',
+        r'\b(19|20)\d{2}\b'
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(0).strip()
+    return None
+
+
+def extract_field_of_study(context):
+    """Extract field of study using robust patterns."""
+    context = normalize_text(context)
+    patterns = [
+        r'\b(?:in|of|major in|degree in|bachelor of|master of|phd in)\s+([a-zA-ZÀ-ÿ\s\-\'&]{3,60})',
+        r'\b(?:en|de|du|dans|diplôme de|licence de|master de|ingénieur en)\s+([a-zA-ZÀ-ÿ\s\-\'&]{3,60})',
+        r'(computer science|engineering|physics|business|data science|informatique|ingénierie|intelligence artificielle|économie|gestion)'
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, context, re.IGNORECASE)
+        if match:
+            field = match.group(1).strip()
+            # Filter out junk
+            if not re.search(r'\b(experience|objectif|skills|connaissance|competence|stage|internship)\b', field):
+                return field
+    return None
+
+
+def extract_institution(lines, index, keywords, window=3):
+    """Extract institution name from surrounding lines."""
+
+    for offset in range(-window, window + 1):
+        i = index + offset
+        if 0 <= i < len(lines):
+            line = lines[i].strip()
+            norm = normalize_text(line)
+            if any(k in norm for k in keywords):
+                return line
+    return None
+
+
+def validate_and_clean(degree_data):
+    """Clean and filter extracted data."""
+    if degree_data.get("field"):
+        field = degree_data["field"]
+        if len(field) > 70 or re.search(r'\b(experience|objectif|connaissance|stage)\b', normalize_text(field)):
+            degree_data["field"] = None
+
+    if degree_data.get("year_range"):
+        match = re.search(r'(19|20)\d{2}(\s*[-–—]\s*(present|en cours|actuel|(19|20)\d{2}))?', degree_data["year_range"], re.IGNORECASE)
+        if match:
+            degree_data["year_range"] = match.group(0).strip()
+        else:
+            degree_data["year_range"] = None
+    return degree_data
+
+
+def extract_degrees(text, analyzer=PyMuPDFLayoutAnalyzer):
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    results = []
+    seen_signatures = set()
+
+    degrees = analyzer.degrees
 
     for idx, line in enumerate(lines):
-        line_clean = normalize_text(line)
-        matched_degree = None
-        match_score = 0
+        norm_line = normalize_text(line)
+        if len(norm_line) < 4 or re.search(r'@|linkedin|^\+?\d', norm_line):
+            continue
 
-        # First: direct keyword match from aliases
-        for degree_name, variations in analyzer.degrees.items():
-            for variant in variations:
-                score = fuzz.token_set_ratio(variant, line_clean)
-                if score > 85 and score > match_score:
-                    matched_degree = degree_name
-                    match_score = score
+        best_score, best_match, best_alias = 0, None, None
+        for degree, aliases in degrees.items():
+            for alias in aliases:
+                score = max(token_set_ratio(norm_line, normalize_text(alias)), partial_ratio(norm_line, normalize_text(alias)))
+                if score > 85 and score > best_score:
+                    if normalize_text(alias) not in norm_line and score < 93:
+                        continue
+                    best_match = degree
+                    best_score = score
+                    best_alias = alias
 
-        if matched_degree:
-            # Wider context window
-            context_window = ' '.join(lines[max(0, idx-2): idx+3])
-            context_clean = normalize_text(context_window)
+        if best_match:
+            # Signature to avoid duplicates (degree + field + institution)
+            context = ' '.join(lines[max(0, idx-4): min(len(lines), idx+5)])
+            field = extract_field_of_study(context)
+            institution = extract_institution(lines, idx, analyzer.institutions)
+            year_range = extract_year_range(context)
+            signature = (best_match, field, institution)
 
-            # Extract field of study
-            field_match = re.search(r'\b(?:en|de|du|dans|in)\s+([a-zA-ZÀ-ÿ0-9\s&\'\-]{3,100})', context_clean, re.IGNORECASE)
-            field = field_match.group(1).strip() if field_match else None
+            if signature not in seen_signatures:
+                seen_signatures.add(signature)
+                degree_data = {
+                    "degree": best_match,
+                    "field": field,
+                    "institution": institution,
+                    "year_range": year_range,
+                    "source": line.strip(),
+                    "confidence": best_score,
+                    "matched_alias": best_alias
+                }
+                cleaned = validate_and_clean(degree_data)
+                if cleaned["confidence"] >= 87:
+                    results.append(cleaned)
 
-            # Extract year range or single year
-            year_match = re.search(r'(20|19)\d{2}(?:\s*[-–—to]{1,3}\s*(20|19)?\d{2})?', context_clean)
-            year = year_match.group(0) if year_match else None
-
-            # Extract possible institution (simple heuristic: look for keywords)
-            institution = None
-            institution_keywords = ['université', 'école', 'faculté', 'institut', 'university', 'faculty', 'institute']
-            for word in institution_keywords:
-                if word in context_clean:
-                    institution_line = next((l for l in lines[max(0, idx-2): idx+3] if word in normalize_text(l)), None)
-                    institution = institution_line.strip() if institution_line else None
-                    break
-
-            extracted.append({
-                "degree": matched_degree,
-                "field": field,
-                "year_range": year,
-                "institution": institution,
-                "source": line.strip()
-            })
-
-    return extracted
+    return results
 
 
+################################################################################################
 
 # helper function
 def normalize_lines(lines: List[str]) -> List[str]:
@@ -476,7 +548,7 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/imran.pdf"
+        pdf_path = "tests/youssef.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
 
         degrees_dict = result['degrees']

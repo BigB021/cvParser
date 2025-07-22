@@ -67,5 +67,6 @@
     "Engineer": ["ingénieur", "engineering degree", "engineer diploma"],
     "PhD": ["phd", "doctorat", "doctoral degree"],
     "Baccalauréat": ["bac", "baccalauréat", "bac+2", "bac+3", "bac+5"]
-  }
+  },
+  "institutions":  ["university", "school", "institute", "faculty", "polytechnic", "université", "école", "faculté", "institut", "ensam", "ensa","ensiasd", "académie", "sup"]
 }
