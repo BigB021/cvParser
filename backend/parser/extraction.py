@@ -476,8 +476,11 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/test-ocr.pdf"
+        pdf_path = "tests/imran.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
+
+        degrees_dict = result['degrees']
+        print(degrees_dict)
         print("File name: ",pdf_path)
         print("=== STRUCTURED EXTRACTION RESULTS ===")
         print(f"**Candidate Name: {result['candidate_name']}")
@@ -485,10 +488,12 @@ if __name__ == "__main__":
         print(f"**Phone: {result['phone_number']}")
         print(f"**City: {result['city']}")
         print(f"**job_titles: {result['job_titles']}")
-        print(f"**degrees: {result['degrees']}")
         print(f"**experience: {result['experience']} years")
         print(f"**skills: {result['skills']}")
         print(f"**Status: {result['status']}")
+        print("**Degrees:")
+        for d in degrees_dict:
+            print(f"  - {d['degree']} in {d['field']} ({d['year_range']})")
 
         # print("\n=== FORMATTED TEXT ===")
         # print(result['text'])
@@ -496,7 +501,7 @@ if __name__ == "__main__":
         occupation = ''
         for job in result['job_titles']:
             occupation += job + " "
-        sample_resume = {
+        resume_data = {
             "name": result['candidate_name'],
             "email": result['email'],
             "phone": result['phone_number'],
@@ -506,14 +511,14 @@ if __name__ == "__main__":
             "status": result['status'],
             "pdf_path": pdf_path,
             "degrees": [
-                {"type": "Master", "subject": "Data Science"},
-                {"type": "Bachelor", "subject": "Computer Science"}
+                {"type": d["degree"], "subject": d["field"]}
+                for d in degrees_dict
             ],
             "skills": result['skills']
         }
 
 
-
+        add_resume(resume_data)
   
 
         
