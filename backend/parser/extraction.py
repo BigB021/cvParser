@@ -1,16 +1,23 @@
-from layout_analyser import PyMuPDFLayoutAnalyzer
-
+import sys
+import os
 import datetime
 import fitz  # PyMuPDF
 import re
 from typing import List, Dict, Optional
 import spacy
 import json
-import os
 from rapidfuzz import process,fuzz
 from unidecode import unidecode
 from collections import defaultdict
 import logging
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from layout_analyser import PyMuPDFLayoutAnalyzer
+from models.resume import add_resume
+
+
+
 
 def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Optional[str]:
     """
@@ -114,8 +121,10 @@ def extract_city(text: str, city_list: List[str], score_threshold: int = 88) -> 
     return best_match
 
 
-# todo: needs some polishing
 def extract_job_titles(text: str, job_list: List[str], threshold=85) -> List[str]:
+    """
+    Extract candidate's occupation using fuzzy matching
+    """
     found = set()
     for line in text.lower().splitlines():
         match = process.extractOne(line, job_list)
@@ -177,8 +186,10 @@ def extract_degrees(text: str, degree_keywords: List[str], threshold: int = 85) 
 
 
 # helper function
-# Normalize lines to merge broken lines that belong together
 def normalize_lines(lines: List[str]) -> List[str]:
+    """
+    Normalizes lines to merge broken lines that belong together
+    """
     normalized = []
     buffer = ""
     for line in lines:
@@ -307,7 +318,12 @@ def extract_skills(text: str, known_skills: List[str], section_headers: List[str
                 skills_found.add(skill)
 
     return sorted(skills_found)
-def clean_status_text(status: str) -> str:
+
+
+def clean_status_text(status: str, cutoff_words:str) -> str:
+    """
+    Extracts candidate's current status
+    """
     import re
     if not status:
         return None
@@ -315,7 +331,7 @@ def clean_status_text(status: str) -> str:
     status = re.sub(r'\s+', ' ', status)  # Normalize spaces
 
     # Cut off trailing incomplete fragments at conjunctions or commas
-    cutoff_words = [' and ', ' but ', ' however ', ' moreover ', ' whereas ', ' also ']
+    #cutoff_words = [' and ', ' but ', ' however ', ' moreover ', ' whereas ', ' also ']
     for w in cutoff_words:
         idx = status.lower().find(w)
         if idx > 20:  # avoid cutting too early, only cut if phrase is longer than 20 chars
@@ -333,7 +349,7 @@ def clean_status_text(status: str) -> str:
 
 
 
-def extract_status_nlp(text: str) -> Optional[str]:
+def extract_status_nlp(text: str, cutoff_words) -> Optional[str]:
     """
     Extract candidate status with improved regex matching and cleanup.
     """
@@ -363,7 +379,7 @@ def extract_status_nlp(text: str) -> Optional[str]:
         matches = combined_pattern.findall(section)
         if matches:
             # Clean and return the shortest meaningful match
-            cleaned = [clean_status_text(m) for m in matches if m]
+            cleaned = [clean_status_text(m,cutoff_words) for m in matches if m]
             cleaned = [c for c in cleaned if c]
             if cleaned:
                 # Return shortest cleaned phrase (likely most precise)
@@ -379,7 +395,7 @@ def extract_status_nlp(text: str) -> Optional[str]:
             continue
         matches = status_only_pattern.findall(section)
         if matches:
-            cleaned = [clean_status_text(m) for m in matches if m]
+            cleaned = [clean_status_text(m,cutoff_words) for m in matches if m]
             cleaned = [c for c in cleaned if c]
             if cleaned:
                 return min(cleaned, key=len)
@@ -418,7 +434,7 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
     exp_years = extract_experience_years(experience_section)
     skills = extract_skills(text, analyzer.config.get("skills", []), analyzer.config.get("skills_headers", []))
 
-    status = extract_status_nlp(text)
+    status = extract_status_nlp(text, analyzer.config.get("cutoff_words", []))
 
 
 
@@ -440,7 +456,8 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        result = process_pdf_with_pymupdf("tests/imran.pdf")
+        pdf_path = "tests/khalid.pdf"
+        result = process_pdf_with_pymupdf(pdf_path)
         
         print("=== STRUCTURED EXTRACTION RESULTS ===")
         print(f"**Candidate Name: {result['candidate_name']}")
@@ -453,7 +470,27 @@ if __name__ == "__main__":
         print(f"**skills: {result['skills']}")
         print(f"**Status: {result['status']}")
 
+        occupation = ''
+        for job in result['job_titles']:
+            occupation += job + " "
+        print(occupation)
+        sample_resume = {
+            "name": result['candidate_name'],
+            "email": result['email'],
+            "phone": result['phone_number'],
+            "occupation": occupation,
+            "exp_years": result['experience'],
+            "city": result['city'],
+            "status": result['status'],
+            "pdf_path": pdf_path,
+            "degrees": [
+                {"type": "Master", "subject": "Data Science"},
+                {"type": "Bachelor", "subject": "Computer Science"}
+            ],
+            "skills": result['skills']
+        }
 
+        add_resume(sample_resume)
 
   
 
