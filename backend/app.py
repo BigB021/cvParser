@@ -1,10 +1,10 @@
 from flask import Flask
 
-from routes.test_route import test_bp
+from routes.router import resume_bp
 
 app = Flask(__name__)
 
-app.register_blueprint(test_bp)
+app.register_blueprint(resume_bp)
 
 
 @app.route("/")

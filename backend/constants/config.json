@@ -1,32 +1,71 @@
 {
   "section_headers": [
-    "PROFILE", "EDUCATION", "EXPERIENCE", "SKILLS", "CONTACT",
-    "PROJECTS", "ACHIEVEMENTS", "LANGUAGES", "HOBBIES", "INTERESTS",
-    "VOLUNTEERING", "ADDITIONAL SKILLS", "FORMATION", "ACADEMIC",
-    "STUDIES", "DIPLOMAS", "QUALIFICATIONS", "SUMMARY", "OBJECTIVE"
+    "PROFILE", "PROFIL", "EDUCATION", "FORMATION", "EXPERIENCE", "EXPÉRIENCE", "SKILLS", "COMPÉTENCES", 
+    "CONTACT", "COORDONNÉES", "PROJECTS", "PROJETS", "ACHIEVEMENTS", "RÉALISATIONS", "LANGUAGES", "LANGUES", 
+    "HOBBIES", "LOISIRS", "INTERESTS", "CENTRES D'INTÉRÊT", "VOLUNTEERING", "BÉNÉVOLAT", 
+    "ADDITIONAL SKILLS", "AUTRES COMPÉTENCES", "FORMATION ACADÉMIQUE", "ACADEMIC", "STUDIES", 
+    "PARCOURS ACADÉMIQUE", "DIPLOMAS", "DIPLÔMES", "QUALIFICATIONS", "CERTIFICATIONS", 
+    "SUMMARY", "RÉSUMÉ", "OBJECTIVE", "OBJECTIF", "WORK EXPERIENCE", "EXPÉRIENCE PROFESSIONNELLE"
   ],
   "blacklist_headers": [
-    "PROFILE", "EDUCATION", "CONTACT", "EXPERIENCE", "PROJECTS",
-    "SKILLS", "LANGUAGES", "VOLUNTEERING"
+    "PROFILE", "PROFIL", "EDUCATION", "FORMATION", "CONTACT", "COORDONNÉES", "EXPERIENCE", "EXPÉRIENCE", 
+    "PROJECTS", "PROJETS", "SKILLS", "COMPÉTENCES", "LANGUAGES", "LANGUES", "VOLUNTEERING", "BÉNÉVOLAT"
   ],
-  "job_titles" : [
-    "engineer", "developer", "analyst", "manager", "consultant", "intern",
-    "technician", "designer", "specialist", "data", "marketing", "sales",
-    "ai", "ml", "it", "support", "finance", "administration", "assistant"
-    ],
-  "cities":["Casablanca", "Rabat", "Marrakech", "Fès", "Agadir", "Tanger", "Oujda", "Kénitra", "Salé", "Tétouan"],
-  "degrees": ["licence", "master", "phd", "bachelor", "engineer"],
-  "experience": ["experience", "professional experience", "work history", "employment"],
-  "next_section": ["education", "skills", "languages", "projects", "certifications"],
+  "job_titles": [
+    "engineer", "ingénieur", "developer", "développeur", "analyst", "analyste", "manager", "gestionnaire", 
+    "consultant", "intern", "stagiaire", "technician", "technicien", "designer", "specialist", "spécialiste", 
+    "data", "marketing", "sales", "commercial", "ai", "ml", "it", "informatique", "support", 
+    "finance", "comptabilité", "administration", "assistant", "assistante", "enseignant", "formateur"
+  ],
+  "cities": [
+    "Casablanca", "Rabat", "Marrakech", "Fès", "Agadir", "Tanger", "Oujda", "Kénitra", "Salé", "Tétouan",
+    "Mohammedia", "El Jadida", "Meknès", "Béni Mellal", "Nador", "Settat", "Laâyoune", "Errachidia", "Essaouira"
+  ],
+  "degrees": [
+    "licence", "license", "bachelor", "maîtrise", "master", "phd", "doctorat", "engineering", 
+    "engineer", "ingénieur", "bts", "dut", "bac+2", "bac+3", "bac+5", "diplôme", "baccalauréat"
+  ],
+  "experience": [
+    "experience", "expérience", "professional experience", "expérience professionnelle", 
+    "work history", "historique professionnel", "employment", "emploi", "career", "carrière"
+  ],
+  "next_section": [
+    "education", "formation", "skills", "compétences", "languages", "langues", 
+    "projects", "projets", "certifications", "certificats", "achievements", "réalisations"
+  ],
   "skills": [
-    "python", "java", "javascript", "html", "css", "react",
-    "node.js", "sql", "docker", "git", "linux", "excel",
-    "power bi", "tensorflow", "pytorch", "machine learning",
-    "data analysis", "project management", "communication", "scrum", "C++", "c++"
+    "python", "java", "javascript", "html", "css", "react", "angular", "node.js", 
+    "sql", "mysql", "mongodb", "docker", "git", "linux", "windows", "excel", "word", 
+    "power bi", "tableau", "tensorflow", "pytorch", "opencv", "scikit-learn", "jira", 
+    "agile", "scrum", "kanban", "figma", "photoshop", "after effects", "illustrator", 
+    "machine learning", "deep learning", "nlp", "data analysis", "data science", 
+    "big data", "cloud", "aws", "azure", "gcp", "project management", 
+    "communication", "problem solving", "leadership", "collaboration"
   ],
-  "skills_headers": ["skill", "technical skills", "technologies", "competencies", "competences"],
-  "education_headers": ["education", "formations", "academic background", "training", "parcours académique"],
-  "degree_keywords": ["licence", "bachelor", "master", "engineer", "diploma", "bts", "dut", "bac"]
-
-
+  "skills_headers": [
+    "skill", "skills", "compétence", "compétences", "technical skills", "technologies", 
+    "competencies", "compétences techniques", "hard skills", "aptitudes", "outils maîtrisés"
+  ],
+  "education_headers": [
+    "education", "formation", "formations", "academic background", "training", 
+    "parcours académique", "études", "études supérieures", "diplômes", "scolarité"
+  ],
+  "degree_keywords": [
+    "licence", "license", "bachelor", "master", "maîtrise", "engineer", "ingénieur", 
+    "diploma", "diplôme", "phd", "doctorat", "bts", "dut", "bac", "deug", "mba", 
+    "msc", "bac+2", "bac+3", "bac+5", "certification"
+  ],
+  "cutoff_words": [
+    " and ", " but ", " however ", " moreover ", " whereas ", " also ", 
+    " et ", " mais ", " cependant ", " pourtant ", " de plus ", " alors que "
+  ],
+  "degree_aliases" :{
+    "DUT": ["diplôme universitaire de technologie", "dut", "d.u.t."],
+    "BTS": ["brevet de technicien supérieur", "bts"],
+    "Licence": ["licence", "licence professionnelle", "licence science", "licence appliquée"],
+    "Master": ["master", "msc", "maîtrise", "m2", "m1"],
+    "Engineer": ["ingénieur", "engineering degree", "engineer diploma"],
+    "PhD": ["phd", "doctorat", "doctoral degree"],
+    "Baccalauréat": ["bac", "baccalauréat", "bac+2", "bac+3", "bac+5"]
+  }
 }
