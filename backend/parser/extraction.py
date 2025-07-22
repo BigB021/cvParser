@@ -14,49 +14,65 @@ import logging
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from layout_analyser import PyMuPDFLayoutAnalyzer
-from models.resume import add_resume
+from models.resume import add_resume, get_all_resumes, delete_resume, get_resume_by_id
 
 
 
 
 def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Optional[str]:
-    """
-    Extracts the candidate's name from the resume text using a combination of
-    NER, font-size, regex, and heuristic fallbacks.
-    """
-    # Get sorted top blocks (by font size then vertical position)
     blocks = analyzer.get_text_blocks(text)
     blocks = sorted(blocks, key=lambda b: (-b.get("font_size", 0), b["y0"]))
     top_blocks = [b["text"] for b in blocks[:8] if b["text"]]
-    # First try: SpaCy NER on top blocks
+
+    # 1. Try SpaCy NER on both original and title-cased text
     for block_text in top_blocks:
-        doc = analyzer.nlp(block_text)
-        for ent in doc.ents:
-            if ent.label_ == "PERSON":
-                name = _clean_name(ent.text,analyzer)
-                if name:
-                    return name
-    # Second try: Heuristic rule – title case words in a line (exclude known headers)
+        for variant in (block_text, block_text.title()):
+            doc = analyzer.nlp(variant)
+            for ent in doc.ents:
+                if ent.label_ == "PERSON":
+                    name = _clean_name(ent.text, analyzer)
+                    if name:
+                        return name
+
+    # 2. Heuristic: first line with 2+ uppercase words (likely name in uppercase)
     for block_text in top_blocks:
+        words = block_text.strip().split()
+        uppercase_words = [w for w in words if w.isupper() and len(w) > 1]
+        if len(uppercase_words) >= 2:
+            probable_name = " ".join(words)
+            if block_text.strip().upper() not in analyzer.blacklist_headers:
+                return _clean_name(probable_name, analyzer)
+
+    # 3. Heuristic: first non-header line before keywords like "etudiant", "contact"
+    keywords = ["etudiant", "student", "contact", "email", "tel", "phone"]
+    for block_text in top_blocks:
+        line_lower = block_text.lower()
+        if any(kw in line_lower for kw in keywords):
+            continue
         if any(char.isdigit() for char in block_text):
             continue
         if block_text.strip().upper() in analyzer.blacklist_headers:
             continue
         words = block_text.strip().split()
         if 1 <= len(words) <= 6:
-            probable_name = " ".join([w for w in words if w[0].isupper()])
-            if 1 <= len(probable_name.split()) <= 4:
-                return _clean_name(probable_name,analyzer)
-    # Third try: Regex fallback for proper names at beginning
-    name_match = re.search(r'^[A-Z][a-z]+(?:\s[A-Z][a-z]+){1,3}', text)
-    if name_match:
-        return _clean_name(name_match.group().strip(),analyzer)
-    # Logging for debugging
+            return _clean_name(block_text.strip(), analyzer)
+
+    # 4. Regex fallback: allow uppercase names
+    regex_patterns = [
+        r'^[A-Z][a-z]+(?:\s[A-Z][a-z]+){1,3}',         # Title case
+        r'^[A-Z]{2,}(?:\s[A-Z]{2,}){1,3}',             # Uppercase (e.g. NIZAR KOURTI)
+    ]
+    for pattern in regex_patterns:
+        name_match = re.search(pattern, text, re.MULTILINE)
+        if name_match:
+            return _clean_name(name_match.group().strip(), analyzer)
+
     print("\n[WARNING] Candidate name could not be extracted.")
     print("--- DEBUG: Top blocks ---")
     for b in top_blocks:
         print(f"> {b}")
     return None
+
 
 
 def _clean_name(name: str, analyzer: PyMuPDFLayoutAnalyzer) -> str:
@@ -133,55 +149,59 @@ def extract_job_titles(text: str, job_list: List[str], threshold=85) -> List[str
     return list(found)
 
 
-# Degree extraction still ass: duplicated enteries and inaccurate dates
-def extract_degrees(text: str, degree_keywords: List[str], threshold: int = 85) -> List[Dict[str, Optional[str]]]:
-    """
-    Extracts degrees with field and year information using buffered line context.
-    """
-    section_text = extract_section(
-        text,
-        section_names=["education", "academic background"],
-        next_section_names=["skills", "projects", "experience", "certifications", "languages"]
-    )
 
-    lines = normalize_lines(section_text.splitlines())
-    degree_pattern = '|'.join([re.escape(d.lower()) for d in degree_keywords])
-    year_pattern = r'(20|19)\d{2}(?:\s*[-–—to]{1,3}\s*(20|19)?\d{2}|)'
-    
-    results = []
-    seen = set()
+def normalize_text(text):
+    return unidecode(text.lower().strip())
+
+def extract_degrees(text ,analyzer=PyMuPDFLayoutAnalyzer):
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    extracted = []
+    print("[Debug] degrees dict:", analyzer.degrees)
 
     for idx, line in enumerate(lines):
-        line_lower = unidecode(line.lower())
-        if not re.search(degree_pattern, line_lower):
-            continue
+        line_clean = normalize_text(line)
+        matched_degree = None
+        match_score = 0
 
-        degree_match = process.extractOne(line_lower, degree_keywords, scorer=fuzz.token_set_ratio)
-        if not degree_match or degree_match[1] < threshold:
-            continue
+        # First: direct keyword match from aliases
+        for degree_name, variations in analyzer.degrees.items():
+            for variant in variations:
+                score = fuzz.token_set_ratio(variant, line_clean)
+                if score > 85 and score > match_score:
+                    matched_degree = degree_name
+                    match_score = score
 
-        degree_name = degree_match[0].title()
+        if matched_degree:
+            # Wider context window
+            context_window = ' '.join(lines[max(0, idx-2): idx+3])
+            context_clean = normalize_text(context_window)
 
-        # Try to find field of study in the same or nearby lines
-        context_lines = ' '.join(lines[max(0, idx-1): idx+2]).strip()
-        field_match = re.search(r'\b(?:in|of|en)\s+([a-zA-Z\s]{3,50})', context_lines)
-        field = field_match.group(1).strip().title() if field_match else None
+            # Extract field of study
+            field_match = re.search(r'\b(?:en|de|du|dans|in)\s+([a-zA-ZÀ-ÿ0-9\s&\'\-]{3,100})', context_clean, re.IGNORECASE)
+            field = field_match.group(1).strip() if field_match else None
 
-        # Extract year or year range
-        year_match = re.search(year_pattern, context_lines)
-        year_range = year_match.group(0) if year_match else None
+            # Extract year range or single year
+            year_match = re.search(r'(20|19)\d{2}(?:\s*[-–—to]{1,3}\s*(20|19)?\d{2})?', context_clean)
+            year = year_match.group(0) if year_match else None
 
-        entry_key = f"{degree_name}|{field}|{year_range}"
-        if entry_key not in seen:
-            results.append({
-                "degree": degree_name,
+            # Extract possible institution (simple heuristic: look for keywords)
+            institution = None
+            institution_keywords = ['université', 'école', 'faculté', 'institut', 'university', 'faculty', 'institute']
+            for word in institution_keywords:
+                if word in context_clean:
+                    institution_line = next((l for l in lines[max(0, idx-2): idx+3] if word in normalize_text(l)), None)
+                    institution = institution_line.strip() if institution_line else None
+                    break
+
+            extracted.append({
+                "degree": matched_degree,
                 "field": field,
-                "year_range": year_range,
+                "year_range": year,
+                "institution": institution,
                 "source": line.strip()
             })
-            seen.add(entry_key)
 
-    return results
+    return extracted
 
 
 
@@ -417,7 +437,7 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
     email = extract_email_from_text(text)
     phone = extract_phone_number_from_text(text)
     jobs = extract_job_titles(text, analyzer.job_titles)
-    degrees = extract_degrees(text,analyzer.degrees)
+    degrees = extract_degrees(text,analyzer)
 
     city = extract_city(text, analyzer.cities)    
         # Extract text
@@ -456,9 +476,9 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/khalid.pdf"
+        pdf_path = "tests/test-ocr.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
-        
+        print("File name: ",pdf_path)
         print("=== STRUCTURED EXTRACTION RESULTS ===")
         print(f"**Candidate Name: {result['candidate_name']}")
         print(f"**Email: {result['email']}")
@@ -470,10 +490,12 @@ if __name__ == "__main__":
         print(f"**skills: {result['skills']}")
         print(f"**Status: {result['status']}")
 
+        # print("\n=== FORMATTED TEXT ===")
+        # print(result['text'])
+
         occupation = ''
         for job in result['job_titles']:
             occupation += job + " "
-        print(occupation)
         sample_resume = {
             "name": result['candidate_name'],
             "email": result['email'],
@@ -490,12 +512,11 @@ if __name__ == "__main__":
             "skills": result['skills']
         }
 
-        add_resume(sample_resume)
+
 
   
 
-        # print("\n=== FORMATTED TEXT ===")
-        # print(result['text'])
+        
         
     except Exception as e:
         print(f"Error: {e}")
