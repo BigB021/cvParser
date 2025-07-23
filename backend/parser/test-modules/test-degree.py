@@ -6,7 +6,7 @@ import sys
 import os
 
 # === Load config.json ===
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','constants', 'config.json')
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','..','constants', 'config.json')
 with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
     CONFIG = json.load(f)
 

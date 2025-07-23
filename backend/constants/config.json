@@ -81,7 +81,7 @@
     "agile", "scrum", "kanban", "figma", "photoshop", "after effects", "illustrator", 
     "machine learning", "deep learning", "nlp", "data analysis", "data science", 
     "big data", "cloud", "aws", "azure", "gcp", "project management", 
-    "communication", "problem solving", "leadership", "collaboration", "c", "c++"
+    "communication", "problem solving", "leadership", "collaboration", "C++"
   ],
   "skills_headers": [
     "skill", "skills", "compétence", "compétences", "technical skills", "technologies", 
@@ -134,6 +134,7 @@
         "baccalauréat sciences", "bac sciences"
     ]
   },
-  "institutions":  ["university", "school", "institute", "faculty", "polytechnic", "université", "école", "faculté", "institut", "ensam", "ensa","ensiasd", "académie", "sup"]
+  "institutions":  ["university", "school", "institute", "faculty", "polytechnic", "université", "école", "faculté", "institut", "ensam", "ensa","ensiasd", "académie", "sup"],
+  "profile_headers": ["profile", "summary", "about me", "objective", "résumé", "objectif", "profil"]
 
 }

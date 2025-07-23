@@ -328,9 +328,6 @@ def normalize_lines(lines: List[str]) -> List[str]:
 
 
 def extract_section(text: str, section_names: List[str], next_section_names: List[str]) -> str:
-    """
-    Extracts a section of the resume between a section header and the next header.
-    """
     lines = text.splitlines()
     section_lines = []
     is_in_section = False
@@ -338,14 +335,18 @@ def extract_section(text: str, section_names: List[str], next_section_names: Lis
     for line in lines:
         line_clean = line.strip().lower()
         if any(header in line_clean for header in section_names):
+            print(f"[DEBUG] Found start of section at: {line}")
             is_in_section = True
             continue
         if is_in_section and any(header in line_clean for header in next_section_names):
+            print(f"[DEBUG] Found end of section at: {line}")
             break
         if is_in_section:
             section_lines.append(line)
 
+    print(f"[DEBUG] Extracted section content:\n{section_lines[:5]}...")  # Show first few lines
     return "\n".join(section_lines).strip()
+
 
 
 def extract_experience_years(text: str, debug: bool = True) -> int:
@@ -413,112 +414,98 @@ def extract_experience_years(text: str, debug: bool = True) -> int:
         print("[DEBUG] No experience years found, returning 0")
     return 0
 
-def extract_skills(text: str, known_skills: List[str], section_headers: List[str], threshold=80) -> List[str]:
-    """Extract skills from text using fuzzy matching within the skills section."""
+def extract_skills(text: str, known_skills: List[str], section_headers: List[str], threshold=75) -> List[str]:
     skills_found = set()
-    
-    # First: try to extract only the skills section
+
+    # Extract only the section if possible
     skills_section = extract_section(
         text,
         section_names=section_headers,
-        next_section_names=["experience", "education", "projects", "languages", "certifications"]
+        next_section_names=CONFIG.get("next_section", [])
     )
-
-    # Fallback to full text if section not found
-    source_text = skills_section if skills_section else text
-
-    lines = source_text.lower().splitlines()
     
+    # Use full text as fallback
+    source_text = skills_section if skills_section else text
+    lines = source_text.lower().splitlines()
+
     for line in lines:
-        # Try multiple matches in each line
-        for skill in known_skills:
-            score = fuzz.partial_ratio(skill.lower(), line)
-            if score >= threshold:
-                skills_found.add(skill)
+        # Split by typical separators
+        candidates = re.split(r'[:,•·\-\|]', line)
+        for token in candidates:
+            token = token.strip()
+            for skill in known_skills:
+                score = fuzz.partial_ratio(skill.lower(), token)
+                if score >= threshold:
+                    skills_found.add(skill)
 
     return sorted(skills_found)
 
 
-def clean_status_text(status: str, cutoff_words:str) -> str:
+
+def clean_status_text(status: str, cutoff_words: List[str]) -> Optional[str]:
     """
-    Extracts candidate's current status
+    Cleans and trims candidate status text.
     """
     import re
     if not status:
         return None
-    status = status.strip()
-    status = re.sub(r'\s+', ' ', status)  # Normalize spaces
 
-    # Cut off trailing incomplete fragments at conjunctions or commas
+    status = status.strip()
+    status = re.sub(r'\s+', ' ', status)  # normalize spacing
+    status = re.sub(r'[\.:;,•\-–—]+$', '', status)  # remove trailing symbols
+
+    # Remove cutoff words and anything after
     for w in cutoff_words:
         idx = status.lower().find(w)
-        if idx > 20:  # avoid cutting too early, only cut if phrase is longer than 20 chars
+        if 15 < idx < len(status) - 4:
             status = status[:idx].strip()
             break
 
-    # Remove trailing punctuation like comma, semicolon, dash
-    status = re.sub(r'[,;:\-\s]+$', '', status)
-
-    # Optionally truncate to ~150 chars max
     if len(status) > 150:
         status = status[:150].rstrip() + "..."
 
-    return status
+    return status if len(status) > 10 else None
 
 
-
-def extract_status_nlp(text: str, cutoff_words) -> Optional[str]:
+def extract_status_nlp(text: str, cutoff_words: List[str]) -> Optional[str]:
     """
-    Extract candidate status with improved regex matching and cleanup.
+    Extracts the student's academic/professional status using profile/education sections.
     """
+    # Don't lowercase the whole text!
+    profile_headers = ["profile", "summary", "about me", "objective", "résumé", "objectif", "profil"]
+    education_headers = CONFIG.get("education_headers", [])
+    blacklist = CONFIG.get("blacklist_headers", [])
 
-    text_lower = text.lower()
+    sections = [
+        extract_section(text, profile_headers, blacklist),
+        extract_section(text, education_headers, blacklist)
+    ]
+    sections = [s for s in sections if s]
 
-    # Extract profile and education sections (fall back to full text)
-    profile_section = extract_section(text_lower, ["profile", "summary", "about me"], ["experience", "education", "skills"])
-    education_section = extract_section(text_lower, ["education", "academic background"], ["experience", "skills", "projects"])
+    # Fallback: first 500 characters of full text
+    if not sections:
+        sections = [text[:500]]
 
-    search_sections = [profile_section, education_section, text_lower]
+    # Patterns to match status
+    patterns = [
+        r"(étudiant en [^\n\.]{5,100})",
+        r"(student (at|in|of)[^\n\.]{5,100})",
+        r"(currently (pursuing|enrolled|studying)[^\n\.]{5,100})",
+        r"(pursuing a [^\n\.]{5,100})",
+        r"(engineer(?:ing)? student[^\n\.]{0,100})",
+        r"(candidate for [^\n\.]{5,100})",
+        r"(in the [^\n\.]{5,100}engineering cycle)",
+        r"(cycle d’ingénieurs[^\n\.]{0,100})",
+        r"(student engineer at [^\n\.]{5,100})"
+    ]
 
-    status_keywords = r"(?:currently|presently|enrolled|pursuing|studying|ongoing|candidate|apprentice|graduate|student|engineer)"
-    degree_keywords = r"(?:master|bachelor|phd|licence|degree|engineering)"
-
-    combined_pattern = re.compile(
-        rf"((?:\S+\s+){{0,5}}{status_keywords}(?:\s+\S+){{0,5}}{degree_keywords}(?:\s+\S+){{0,5}})",
-        re.IGNORECASE
-    )
-
-    # Search for combined status + degree phrase first
-    for section in search_sections:
-        if not section:
-            continue
-        matches = combined_pattern.findall(section)
-        if matches:
-            # Clean and return the shortest meaningful match
-            cleaned = [clean_status_text(m,cutoff_words) for m in matches if m]
-            cleaned = [c for c in cleaned if c]
-            if cleaned:
-                # Return shortest cleaned phrase (likely most precise)
-                return min(cleaned, key=len)
-
-    # Fallback: only status keywords phrase
-    status_only_pattern = re.compile(
-        rf"((?:\S+\s+){{0,20}}{status_keywords}(?:\s+\S+){{0,20}})",
-        re.IGNORECASE
-    )
-    for section in search_sections:
-        if not section:
-            continue
-        matches = status_only_pattern.findall(section)
-        if matches:
-            cleaned = [clean_status_text(m,cutoff_words) for m in matches if m]
-            cleaned = [c for c in cleaned if c]
-            if cleaned:
-                return min(cleaned, key=len)
+    for section in sections:
+        for pattern in patterns:
+            match = re.search(pattern, section, re.IGNORECASE)
+            if match:
+                return clean_status_text(match.group(1), cutoff_words)
 
     return None
-
-
 
 
 def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
@@ -573,7 +560,7 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/test-ocr.pdf"
+        pdf_path = "tests/karim.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
 
         degrees_dict = result['degrees']
