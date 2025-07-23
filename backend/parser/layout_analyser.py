@@ -21,7 +21,7 @@ class PyMuPDFLayoutAnalyzer:
             config = json.load(f)
             self.config = config  
             self.section_headers = config.get("section_headers", [])
-            # self.blacklist_headers = set(config.get("blacklist_headers", []))
+            self.blacklist_headers = set(config.get("blacklist_headers", []))
             # self.job_titles = config.get("job_titles", [])
             # self.cities = [city.lower() for city in config["cities"]]
             # self.degrees = config.get("degree_aliases", {})

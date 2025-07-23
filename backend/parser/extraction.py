@@ -224,11 +224,15 @@ def extract_year_range(text):
             return match.group(0).strip()
     return None
 
-def extract_institution(lines, index, window=2):
+def extract_institution(lines, index, window=3):
     keywords = CONFIG.get("institutions", [])
+    keyword_pattern = '|'.join(re.escape(k) for k in keywords)
+
+    # Stronger regex patterns
     patterns = [
-        rf"({'|'.join(keywords)})\s+[a-z\s]+",
-        r'[A-Z][a-z]+\s+(?:University|School|Institute|Faculty)'
+        rf"(?i)\b({keyword_pattern})\b[\w\s,\.\-']{{3,}}",  # keyword followed by name
+        rf"(?i)[\w\s,\.\-']{{3,}}\b({keyword_pattern})\b",  # name followed by keyword
+        r"(?i)\b(?:[A-Z]{3,}|Université\s+\w+|Ecole\s+\w+|Faculty\s+\w+)\b"  # acronyms like ENSAM, or proper names
     ]
 
     for offset in range(-window, window + 1):
@@ -236,9 +240,10 @@ def extract_institution(lines, index, window=2):
         if 0 <= i < len(lines):
             line = lines[i].strip()
             for pattern in patterns:
-                match = re.search(pattern, line, re.IGNORECASE)
-                if match and len(match.group()) > 8:
+                match = re.search(pattern, line)
+                if match and len(match.group()) >= 6:
                     return match.group().strip()
+
     return None
 
 def extract_degrees(text):
@@ -589,9 +594,15 @@ if __name__ == "__main__":
         print(f"**Status: {result['status']}")
         print("**Degrees:")
         for d in degrees_dict:
-            print(f"  - {d['degree']} in {d['field']} ({d['year_range']})")
+            print(f"  - {d['degree']} in {d['field']} at {d['institution']} ({d['year_range']})")
+            print(f"[Debug] Degree extra data:\n source {d['source']} \n confidence {d['confidence']} ")
 
-        
+        # "degree": best_match,
+        #             "field": field,
+        #             "institution": institution,
+        #             "year_range": year_range,
+        #             "source": line.strip(),
+        #             "confidence": best_score
         resume_data = {
             "name": result['candidate_name'],
             "email": result['email'],
@@ -610,9 +621,7 @@ if __name__ == "__main__":
 
 
         add_resume(resume_data)
-  
 
-        
         
     except Exception as e:
         print(f"Error: {e}")
