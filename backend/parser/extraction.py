@@ -18,7 +18,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from layout_analyser import PyMuPDFLayoutAnalyzer
 from models.resume import add_resume, get_all_resumes, delete_resume, get_resume_by_id
 
-
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','constants', 'config.json')
+with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+    CONFIG = json.load(f)
 
 
 def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Optional[str]:
@@ -32,7 +34,7 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
             doc = analyzer.nlp(variant)
             for ent in doc.ents:
                 if ent.label_ == "PERSON":
-                    name = _clean_name(ent.text, analyzer)
+                    name = _clean_name(ent.text)
                     if name:
                         return name
 
@@ -43,7 +45,7 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
         if len(uppercase_words) >= 2:
             probable_name = " ".join(words)
             if block_text.strip().upper() not in analyzer.blacklist_headers:
-                return _clean_name(probable_name, analyzer)
+                return _clean_name(probable_name)
 
     # 3. Heuristic: first non-header line before keywords like "etudiant", "contact"
     keywords = ["etudiant", "student", "contact", "email", "tel", "phone"]
@@ -57,7 +59,7 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
             continue
         words = block_text.strip().split()
         if 1 <= len(words) <= 6:
-            return _clean_name(block_text.strip(), analyzer)
+            return _clean_name(block_text.strip())
 
     # 4. Regex fallback: allow uppercase names
     regex_patterns = [
@@ -67,7 +69,7 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
     for pattern in regex_patterns:
         name_match = re.search(pattern, text, re.MULTILINE)
         if name_match:
-            return _clean_name(name_match.group().strip(), analyzer)
+            return _clean_name(name_match.group().strip())
 
     print("\n[WARNING] Candidate name could not be extracted.")
     print("--- DEBUG: Top blocks ---")
@@ -77,14 +79,14 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
 
 
 
-def _clean_name(name: str, analyzer: PyMuPDFLayoutAnalyzer) -> str:
+def _clean_name(name: str) -> str:
     """
     Removes job titles or other known keywords that don't belong in names.
     """
     tokens = name.strip().split()
     cleaned = []
     for token in tokens:
-        if token.lower() in analyzer.job_titles:
+        if token.lower() in CONFIG.get("job_titles",[]):
             break
         cleaned.append(token)
     return " ".join(cleaned)
@@ -139,19 +141,29 @@ def extract_city(text: str, city_list: List[str], score_threshold: int = 88) -> 
     return best_match
 
 
-def extract_job_titles(text: str, job_list: List[str], threshold=85) -> List[str]:
-    """
-    Extract candidate's occupation using fuzzy matching
-    """
-    found = set()
-    for line in text.lower().splitlines():
-        match = process.extractOne(line, job_list)
-        if match and match[1] > threshold:
-            found.add(match[0])
-    return list(found)
+
+from typing import Dict
+
+def extract_job_title(text: str, canonical_job_titles: Dict[str, list], threshold: int = 80) -> str:
+    best_match = ("", 0)
+    lines = text.lower().splitlines()
+
+    # Filter out short or unrelated lines (e.g. "english", "skills", "bachelor")
+    filtered_lines = [line.strip() for line in lines if len(line.strip()) > 8 and any(c.isalpha() for c in line)]
+
+    for title, phrases in canonical_job_titles.items():
+        for phrase in phrases:
+            for line in filtered_lines:
+                score = fuzz.token_set_ratio(phrase.lower(), line)
+                if score > best_match[1]:
+                    best_match = (title, score)
+
+    return best_match[0] if best_match[1] >= threshold else ""
 
 
 ################################# probably needs to be put in a separate module ##############################################
+
+# === Helpers ===
 def normalize_text(text):
     if not text:
         return ""
@@ -159,121 +171,131 @@ def normalize_text(text):
     text = re.sub(r'\s+', ' ', text)
     return text
 
+def is_education_section(lines, index, window=3):
+    education_indicators = CONFIG.get("education_headers", [])
+    start = max(0, index - window)
+    end = min(len(lines), index + window)
+    context = ' '.join(lines[start:end]).lower()
+    return any(indicator in context for indicator in education_indicators)
 
-def extract_year_range(text):
-    """Extract year ranges with stronger handling."""
-    if not text:
-        return None
+def extract_clean_field(text, degree_match):
+    text = normalize_text(text)
+    valid_fields = CONFIG.get("skills", [])  # Assuming fields overlap with skills for now
 
     patterns = [
-        r'(?P<start>(19|20)\d{2})\s*[-–—to]+\s*(?P<end>present|en cours|actuel|(19|20)\d{2})',
-        r'(?P<month>(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre))\s+(?P<year>(19|20)\d{2})\s*[-–—to]+\s*(?P<endyear>present|en cours|actuel|(19|20)\d{2})',
-        r'\b(19|20)\d{2}\b'
+        rf'{re.escape(degree_match)}\s+(?:en|in|de|of)\s+([a-z\s,&-]+?)(?:\s|$|\n|\.|\()',
+        r'(?:en|in|de|of)\s+([a-z\s,&-]+?)(?:\s|$|\n|\.|\()',
+        r"cycle\s+d[\'']ingenieurs?\s+([a-z\s,&-]+?)(?:\s|$|\n|\.|\()'"
     ]
 
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        for match in matches:
+            field = match.strip()
+            for valid_field in valid_fields:
+                if fuzz.partial_ratio(field, valid_field) > 70:
+                    return clean_field_name(field)
+    return None
+
+def clean_field_name(field):
+    field = field.strip()
+    noise_patterns = [
+        r'\b(?:degree|diploma|programme|program|formation|cycle|year|annee)\b',
+        r'\([^)]*\)',
+        r'\s+',
+    ]
+    for pattern in noise_patterns:
+        field = re.sub(pattern, ' ', field, flags=re.IGNORECASE)
+
+    field = ' '.join(field.split())
+    return field.title() if len(field) > 2 else None
+
+def extract_year_range(text):
+    if not text:
+        return None
+    patterns = [
+        r'(20\d{2})\s*[-–—]\s*(20\d{2}|present|currently|current)',
+        r'(20\d{2})\s*[-–—]\s*(20\d{2})',
+        r'\b(20\d{2})\b'
+    ]
     for pattern in patterns:
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             return match.group(0).strip()
     return None
 
-
-def extract_field_of_study(context):
-    """Extract field of study using robust patterns."""
-    context = normalize_text(context)
+def extract_institution(lines, index, window=2):
+    keywords = CONFIG.get("institutions", [])
     patterns = [
-        r'\b(?:in|of|major in|degree in|bachelor of|master of|phd in)\s+([a-zA-ZÀ-ÿ\s\-\'&]{3,60})',
-        r'\b(?:en|de|du|dans|diplôme de|licence de|master de|ingénieur en)\s+([a-zA-ZÀ-ÿ\s\-\'&]{3,60})',
-        r'(computer science|engineering|physics|business|data science|informatique|ingénierie|intelligence artificielle|économie|gestion)'
+        rf"({'|'.join(keywords)})\s+[a-z\s]+",
+        r'[A-Z][a-z]+\s+(?:University|School|Institute|Faculty)'
     ]
-
-    for pattern in patterns:
-        match = re.search(pattern, context, re.IGNORECASE)
-        if match:
-            field = match.group(1).strip()
-            # Filter out junk
-            if not re.search(r'\b(experience|objectif|skills|connaissance|competence|stage|internship)\b', field):
-                return field
-    return None
-
-
-def extract_institution(lines, index, keywords, window=3):
-    """Extract institution name from surrounding lines."""
 
     for offset in range(-window, window + 1):
         i = index + offset
         if 0 <= i < len(lines):
             line = lines[i].strip()
-            norm = normalize_text(line)
-            if any(k in norm for k in keywords):
-                return line
+            for pattern in patterns:
+                match = re.search(pattern, line, re.IGNORECASE)
+                if match and len(match.group()) > 8:
+                    return match.group().strip()
     return None
 
-
-def validate_and_clean(degree_data):
-    """Clean and filter extracted data."""
-    if degree_data.get("field"):
-        field = degree_data["field"]
-        if len(field) > 70 or re.search(r'\b(experience|objectif|connaissance|stage)\b', normalize_text(field)):
-            degree_data["field"] = None
-
-    if degree_data.get("year_range"):
-        match = re.search(r'(19|20)\d{2}(\s*[-–—]\s*(present|en cours|actuel|(19|20)\d{2}))?', degree_data["year_range"], re.IGNORECASE)
-        if match:
-            degree_data["year_range"] = match.group(0).strip()
-        else:
-            degree_data["year_range"] = None
-    return degree_data
-
-
-def extract_degrees(text, analyzer=PyMuPDFLayoutAnalyzer):
+def extract_degrees(text):
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     results = []
-    seen_signatures = set()
-
-    degrees = analyzer.degrees
+    seen_degrees = set()
+    aliases_dict = CONFIG.get("degree_aliases", {})
 
     for idx, line in enumerate(lines):
-        norm_line = normalize_text(line)
-        if len(norm_line) < 4 or re.search(r'@|linkedin|^\+?\d', norm_line):
+        if len(line) < 5:
             continue
 
-        best_score, best_match, best_alias = 0, None, None
-        for degree, aliases in degrees.items():
+        norm_line = normalize_text(line)
+        if any(skip in norm_line for skip in ['email', 'phone', 'linkedin', 'github', 'skills', 'projects', 'languages']):
+            continue
+
+        if not is_education_section(lines, idx):
+            continue
+
+        best_match = None
+        best_score = 0
+
+        for degree, aliases in aliases_dict.items():
             for alias in aliases:
-                score = max(token_set_ratio(norm_line, normalize_text(alias)), partial_ratio(norm_line, normalize_text(alias)))
+                score = fuzz.token_set_ratio(norm_line, normalize_text(alias))
                 if score > 85 and score > best_score:
-                    if normalize_text(alias) not in norm_line and score < 93:
-                        continue
-                    best_match = degree
-                    best_score = score
-                    best_alias = alias
+                    if normalize_text(alias) in norm_line or fuzz.partial_ratio(norm_line, normalize_text(alias)) > 90:
+                        best_match = degree
+                        best_score = score
 
         if best_match:
-            # Signature to avoid duplicates (degree + field + institution)
-            context = ' '.join(lines[max(0, idx-4): min(len(lines), idx+5)])
-            field = extract_field_of_study(context)
-            institution = extract_institution(lines, idx, analyzer.institutions)
+            context_lines = lines[max(0, idx - 2):min(len(lines), idx + 3)]
+            context = ' '.join(context_lines)
+            field = extract_clean_field(context, best_match.lower())
             year_range = extract_year_range(context)
-            signature = (best_match, field, institution)
+            institution = extract_institution(lines, idx)
 
-            if signature not in seen_signatures:
-                seen_signatures.add(signature)
+            signature = (best_match, field, year_range)
+            if signature not in seen_degrees and best_score >= 85:
+                seen_degrees.add(signature)
                 degree_data = {
                     "degree": best_match,
                     "field": field,
                     "institution": institution,
                     "year_range": year_range,
                     "source": line.strip(),
-                    "confidence": best_score,
-                    "matched_alias": best_alias
+                    "confidence": best_score
                 }
-                cleaned = validate_and_clean(degree_data)
-                if cleaned["confidence"] >= 87:
-                    results.append(cleaned)
+                results.append(degree_data)
 
-    return results
+    valid_results = []
+    for result in results:
+        if result['field'] and any(word in result['field'].lower() for word in ['project', 'algorithm', 'visualization', 'tool']):
+            continue
+        valid_results.append(result)
 
+    return valid_results
 
 ################################################################################################
 
@@ -386,7 +408,7 @@ def extract_experience_years(text: str, debug: bool = True) -> int:
         print("[DEBUG] No experience years found, returning 0")
     return 0
 
-def extract_skills(text: str, known_skills: List[str], section_headers: List[str], threshold=85) -> List[str]:
+def extract_skills(text: str, known_skills: List[str], section_headers: List[str], threshold=80) -> List[str]:
     """Extract skills from text using fuzzy matching within the skills section."""
     skills_found = set()
     
@@ -423,7 +445,6 @@ def clean_status_text(status: str, cutoff_words:str) -> str:
     status = re.sub(r'\s+', ' ', status)  # Normalize spaces
 
     # Cut off trailing incomplete fragments at conjunctions or commas
-    #cutoff_words = [' and ', ' but ', ' however ', ' moreover ', ' whereas ', ' also ']
     for w in cutoff_words:
         idx = status.lower().find(w)
         if idx > 20:  # avoid cutting too early, only cut if phrase is longer than 20 chars
@@ -461,8 +482,6 @@ def extract_status_nlp(text: str, cutoff_words) -> Optional[str]:
         rf"((?:\S+\s+){{0,5}}{status_keywords}(?:\s+\S+){{0,5}}{degree_keywords}(?:\s+\S+){{0,5}})",
         re.IGNORECASE
     )
-
-
 
     # Search for combined status + degree phrase first
     for section in search_sections:
@@ -508,25 +527,26 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
     candidate_name = extract_candidate_name(text, analyzer)
     email = extract_email_from_text(text)
     phone = extract_phone_number_from_text(text)
-    jobs = extract_job_titles(text, analyzer.job_titles)
-    degrees = extract_degrees(text,analyzer)
+    jobs = extract_job_title(text, CONFIG.get("canonical_job_titles",{}))
+    degrees = extract_degrees(text)
 
-    city = extract_city(text, analyzer.cities)    
+    CITIES = [city.lower() for city in CONFIG["cities"]]
+    city = extract_city(text, CITIES)    
         # Extract text
     text = analyzer.extract_with_layout_analysis()
 
     # Extract only the experience-related section
     experience_section = extract_section(
         text,
-        section_names=analyzer.experience,
-        next_section_names=analyzer.next_section
+        section_names=CONFIG.get("experience", []),
+        next_section_names=CONFIG.get("next_section", [])
     )
 
     # Then extract experience years ONLY from this section
     exp_years = extract_experience_years(experience_section)
-    skills = extract_skills(text, analyzer.config.get("skills", []), analyzer.config.get("skills_headers", []))
+    skills = extract_skills(text, CONFIG.get("skills", []), CONFIG.get("skills_headers", []))
 
-    status = extract_status_nlp(text, analyzer.config.get("cutoff_words", []))
+    status = extract_status_nlp(text, CONFIG.get("cutoff_words", []))
 
 
 
@@ -548,12 +568,16 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/youssef.pdf"
+        pdf_path = "tests/test-ocr.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
 
         degrees_dict = result['degrees']
-        print(degrees_dict)
+
         print("File name: ",pdf_path)
+        
+        print("\n=== FORMATTED TEXT ===")
+        print(result['text'])
+        
         print("=== STRUCTURED EXTRACTION RESULTS ===")
         print(f"**Candidate Name: {result['candidate_name']}")
         print(f"**Email: {result['email']}")
@@ -567,17 +591,12 @@ if __name__ == "__main__":
         for d in degrees_dict:
             print(f"  - {d['degree']} in {d['field']} ({d['year_range']})")
 
-        # print("\n=== FORMATTED TEXT ===")
-        # print(result['text'])
-
-        occupation = ''
-        for job in result['job_titles']:
-            occupation += job + " "
+        
         resume_data = {
             "name": result['candidate_name'],
             "email": result['email'],
             "phone": result['phone_number'],
-            "occupation": occupation,
+            "occupation": result['job_titles'],
             "exp_years": result['experience'],
             "city": result['city'],
             "status": result['status'],

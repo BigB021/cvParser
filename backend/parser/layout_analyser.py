@@ -21,16 +21,16 @@ class PyMuPDFLayoutAnalyzer:
             config = json.load(f)
             self.config = config  
             self.section_headers = config.get("section_headers", [])
-            self.blacklist_headers = set(config.get("blacklist_headers", []))
-            self.job_titles = config.get("job_titles", [])
-            self.cities = [city.lower() for city in config["cities"]]
-            self.degrees = config.get("degree_aliases", {})
-            self.experience = config.get("experience", [])
-            self.next_section = config.get("next_section", [])
-            self.skills = config.get("skills", [])
-            self.skills_headers = config.get("skills_headers", [])
-            self.education = config.get("education_headers", [])
-            self.institutions = config.get("institutions", [])
+            # self.blacklist_headers = set(config.get("blacklist_headers", []))
+            # self.job_titles = config.get("job_titles", [])
+            # self.cities = [city.lower() for city in config["cities"]]
+            # self.degrees = config.get("degree_aliases", {})
+            # self.experience = config.get("experience", [])
+            # self.next_section = config.get("next_section", [])
+            # self.skills = config.get("skills", [])
+            # self.skills_headers = config.get("skills_headers", [])
+            # self.education = config.get("education_headers", [])
+            # self.institutions = config.get("institutions", [])
 
     def extract_with_layout_analysis(self) -> str:
         """Extract text with layout analysis and fallback to OCR if necessary."""

@@ -17,6 +17,47 @@
     "data", "marketing", "sales", "commercial", "ai", "ml", "it", "informatique", "support", 
     "finance", "comptabilité", "administration", "assistant", "assistante", "enseignant", "formateur"
   ],
+  "canonical_job_titles": {
+    "AI Engineer": [
+        "ai engineer", "artificial intelligence engineer", "ingénieur ia", 
+        "ingénieur intelligence artificielle", "machine learning engineer",
+        "data science engineer", "ai developer", "étudiant en première année cycle d'ingénieurs sciences des données",
+        "student engineer data science", "engineer artificial intelligence", "data science artificial intelligence",
+        "sciences des données big data ia", "intelligence artificielle et sciences des données",
+        "cycle d'ingénieurs sciences des données", "big data ia", "école nationale supérieure de l'intelligence artificielle"
+    ],
+    "Data Engineer": [
+        "data engineer", "engineer data", "ingénieur données", "ingénieur data", "data ingé",
+        "big data engineer", "data pipeline engineer", "ingénierie des systèmes d'information",
+        "systèmes d'information et réseaux"
+    ],
+    "Data Scientist": [
+        "data scientist", "data science", "scientist data", "scientifique des données",
+        "data science specialist", "junior data scientist", "sciences des données"
+    ],
+    "Data Analyst": [
+        "data analyst", "analyste données", "data science analyst",
+        "business data analyst", "junior data analyst", "informatique décisionnelle"
+    ],
+    "Industrial Engineer": [
+        "industrial engineer", "ingénieur industriel", "industrial engineering degree",
+        "student at ensam", "ensam meknes", "arts and crafts", "école nationale supérieure d'arts et métiers"
+    ],
+    "Software Developer": [
+        "software developer", "software engineer", "developer", "développeur", 
+        "ingénieur logiciel", "web developer", "full stack developer", "développement web"
+    ],
+    "IT Technician": [
+        "technician", "technicien", "it support", "technicien informatique",
+        "support technique", "dut en informatique"
+    ],
+    "Project Manager": [
+        "project manager", "gestionnaire projet", "chef de projet",
+        "project coordinator"
+    ],
+    "Consultant": ["consultant", "consultante"],
+    "Teacher": ["enseignant", "formateur", "instructor"]
+  },
   "cities": [
     "Casablanca", "Rabat", "Marrakech", "Fès", "Agadir", "Tanger", "Oujda", "Kénitra", "Salé", "Tétouan",
     "Mohammedia", "El Jadida", "Meknès", "Béni Mellal", "Nador", "Settat", "Laâyoune", "Errachidia", "Essaouira"
@@ -40,7 +81,7 @@
     "agile", "scrum", "kanban", "figma", "photoshop", "after effects", "illustrator", 
     "machine learning", "deep learning", "nlp", "data analysis", "data science", 
     "big data", "cloud", "aws", "azure", "gcp", "project management", 
-    "communication", "problem solving", "leadership", "collaboration"
+    "communication", "problem solving", "leadership", "collaboration", "c", "c++"
   ],
   "skills_headers": [
     "skill", "skills", "compétence", "compétences", "technical skills", "technologies", 
@@ -60,13 +101,39 @@
     " et ", " mais ", " cependant ", " pourtant ", " de plus ", " alors que "
   ],
   "degree_aliases" :{
-    "DUT": ["diplôme universitaire de technologie", "dut", "d.u.t."],
-    "BTS": ["brevet de technicien supérieur", "bts"],
-    "Licence": ["licence", "licence professionnelle", "licence science", "licence appliquée"],
-    "Master": ["master", "msc", "maîtrise", "m2", "m1"],
-    "Engineer": ["ingénieur", "engineering degree", "engineer diploma"],
-    "PhD": ["phd", "doctorat", "doctoral degree"],
-    "Baccalauréat": ["bac", "baccalauréat", "bac+2", "bac+3", "bac+5"]
+    "DUT": [
+        "diplôme universitaire de technologie", "dut", "d.u.t.",
+        "diploma universitaire de technologie"
+    ],
+    "DEUG": [
+        "deug", "diplôme d'études universitaires générales",
+        "d.e.u.g"
+    ],
+    "BTS": [
+        "brevet de technicien supérieur", "bts", "b.t.s."
+    ],
+    "Licence": [
+        "licence", "licence professionnelle", "licence science", 
+        "licence appliquée", "fundamental licence", "licence fondamentale",
+        "licences professionnelles"
+    ],
+    "Master": [
+        "master", "msc", "maîtrise", "m2", "m1", "master's degree",
+        "master of", "master in", "masters"
+    ],
+    "Engineer": [
+        "ingénieur", "engineering degree", "engineer diploma",
+        "cycle d'ingénieurs", "cycle d'ingénieur", "engineering cycle",
+        "student engineer", "étudiant ingénieur", "première année cycle d'ingénieurs"
+    ],
+    "PhD": [
+        "phd", "doctorat", "doctoral degree", "ph.d", "doctorate"
+    ],
+    "Baccalauréat": [
+        "bac", "baccalauréat", "baccalaureate", "high school diploma",
+        "baccalauréat sciences", "bac sciences"
+    ]
   },
   "institutions":  ["university", "school", "institute", "faculty", "polytechnic", "université", "école", "faculté", "institut", "ensam", "ensa","ensiasd", "académie", "sup"]
+
 }
