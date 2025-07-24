@@ -28,6 +28,8 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
     blocks = sorted(blocks, key=lambda b: (-b.get("font_size", 0), b["y0"]))
     top_blocks = [b["text"] for b in blocks[:8] if b["text"]]
 
+
+
     # 1. Try SpaCy NER on both original and title-cased text
     for block_text in top_blocks:
         for variant in (block_text, block_text.title()):
@@ -41,6 +43,7 @@ def extract_candidate_name(text: str, analyzer: PyMuPDFLayoutAnalyzer) -> Option
     # 2. Heuristic: first line with 2+ uppercase words (likely name in uppercase)
     for block_text in top_blocks:
         words = block_text.strip().split()
+
         uppercase_words = [w for w in words if w.isupper() and len(w) > 1]
         if len(uppercase_words) >= 2:
             probable_name = " ".join(words)
@@ -94,6 +97,8 @@ def _clean_name(name: str) -> str:
 
 def extract_email_from_text(text: str) -> Optional[str]:
     """Extract email using regex"""
+    text = re.sub(r'\s*@\s*', '@', text)  # removes spaces around @
+
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     matches = re.findall(email_pattern, text)
     return matches[0] if matches else None
@@ -101,7 +106,7 @@ def extract_email_from_text(text: str) -> Optional[str]:
 def extract_phone_number_from_text(text: str) -> Optional[str]:
     """Extract Moroccan phone numbers using regex"""
     patterns = [
-        r'\+212[\s-]*(?:\(0\)[\s-]*)?(?:6|7)[\d\s()-]{8,}',
+        r'\+212[\s-]*(?:\(0\)[\s-]*)?(?:6|7)[\d\s()/.-]{6,}',
         r'(?:06|07)[\d\s()-]{8,}',
         r'212[\s-]*(?:6|7)[\d\s()-]{8,}',
     ]
@@ -557,10 +562,10 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
     }
 
 
-# Main execution (testing module)
+# Main execution (testing)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/nigga.pdf"
+        pdf_path = "tests/karim.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
 
         degrees_dict = result['degrees']
@@ -607,7 +612,7 @@ if __name__ == "__main__":
         }
 
 
-        add_resume(resume_data)
+        #add_resume(resume_data)
 
         
     except Exception as e:

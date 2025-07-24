@@ -1,10 +1,8 @@
 import re
 import json
 from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
-
-
 import sys
 import os
 
@@ -45,116 +43,20 @@ class ExtractionResult:
 
 class CVParser:
     def __init__(self):
-        # Status keywords mapping
-        self.status_patterns = {
-            StatusType.INTERNSHIP: {
-                'french': [
-                    r'recherche.*stage', r'stage.*professionnel', r'stagiaire',
-                    r'opportunit[ée].*stage', r'stage.*entreprise', r'stage.*mois',
-                    r'stage.*application', r'recherche.*d\'un.*stage'
-                ],
-                'english': [
-                    r'looking.*internship', r'seeking.*internship', r'intern.*position',
-                    r'internship.*opportunity', r'student.*intern', r'summer.*intern',
-                    r'internship.*program', r'applying.*internship'
-                ]
-            },
-            StatusType.FULL_TIME: {
-                'french': [
-                    r'recherche.*emploi', r'poste.*temps.*plein', r'cdi', 
-                    r'emploi.*permanent', r'carr[iè]ere.*professionnel', 
-                    r'opportunit[ée].*professionnel',
-                    r'recherche.*CDI'
-                ],
-                'english': [
-                    r'full.?time.*position', r'permanent.*position', r'career.*opportunity',
-                    r'seeking.*employment', r'job.*opportunity', r'professional.*role'
-                ]
-            },
-            StatusType.STUDENT: {
-                'french': [
-                    r'[eé]tudiant', r'cycle.*ing[eé]nieur', r'master', r'licence',
-                    r'universit[eé]', r'[eé]cole', r'formation', r'cursus'
-                ],
-                'english': [
-                    r'student', r'undergraduate', r'graduate', r'pursuing.*degree',
-                    r'master.*student', r'bachelor.*student', r'enrolled'
-                ]
-            }
-        }
+        """Initialize parser with configuration from config.json"""
+        self.config = CONFIG
         
-        # Occupation patterns with levels
-        self.occupation_patterns = {
-            'ai_engineer': {
-                'patterns': {
-                    'french': [r'ing[eé]nieur.*ia', r'intelligence.*artificielle', r'ia.*ing[eé]nieur'],
-                    'english': [r'ai.*engineer', r'artificial.*intelligence.*engineer', r'ml.*engineer']
-                },
-                'levels': {
-                    'student': [r'[eé]tudiant', r'student', r'apprentice'],
-                    'junior': [r'junior', r'd[eé]butant', r'entry.?level'],
-                    'senior': [r'senior', r'exp[eé]riment[eé]', r'lead']
-                }
-            },
-            'data_scientist': {
-                'patterns': {
-                    'french': [r'data.*scientist', r'scientifique.*donn[eé]es', r'analyste.*donn[eé]es'],
-                    'english': [r'data.*scientist', r'data.*analyst', r'data.*engineer']
-                },
-                'levels': {
-                    'student': [r'[eé]tudiant', r'student'],
-                    'junior': [r'junior', r'associate'],
-                    'senior': [r'senior', r'lead', r'principal']
-                }
-            },
-            'software_engineer': {
-                'patterns': {
-                    'french': [r'ing[eé]nieur.*logiciel', r'd[eé]veloppeur', r'programmeur'],
-                    'english': [r'software.*engineer', r'developer', r'programmer', r'software.*developer']
-                },
-                'levels': {
-                    'student': [r'[eé]tudiant', r'student'],
-                    'junior': [r'junior', r'entry.?level'],
-                    'senior': [r'senior', r'lead', r'principal', r'staff']
-                }
-            },
-            'computer_science_student': {
-                'patterns': {
-                    'french': [r'informatique', r'sciences.*informatiques', r'ing[eé]nieur.*informatique'],
-                    'english': [r'computer.*science', r'computer.*scientist', r'cs.*student']
-                },
-                'levels': {
-                    'student': [r'[eé]tudiant', r'student', r'bachelor', r'master', r'licence']
-                }
-            },
-            'industrial_engineer': {
-                'patterns': {
-                    'french': [r'ing[eé]nieur.*industriel', r'g[eé]nie.*industriel'],
-                    'english': [r'industrial.*engineer', r'manufacturing.*engineer']
-                },
-                'levels': {
-                    'student': [r'[eé]tudiant', r'student'],
-                    'junior': [r'junior', r'associate'],
-                    'senior': [r'senior', r'lead']
-                }
-            },
-            'business_student': {
-                'patterns': {
-                    'french': [r'gestion', r'management', r'commerce', r'[eé]conomie'],
-                    'english': [r'business', r'management', r'economics', r'finance']
-                },
-                'levels': {
-                    'student': [r'[eé]tudiant', r'student', r'bachelor', r'master']
-                }
-            }
-        }
+        # Load status patterns from config
+        self.status_patterns = self.config.get('status_patterns', {})
         
-        # Education level indicators
-        self.education_levels = {
-            'bachelor': [r'licence', r'bachelor', r'bac\+3', r'deug'],
-            'master': [r'master', r'bac\+5', r'ing[eé]nieur'],
-            'phd': [r'doctorat', r'phd', r'th[eè]se']
-        }
+        # Load occupation patterns from config
+        self.occupation_patterns = self.config.get('occupation_patterns', {})
+        
+        # Load education levels from config
+        self.education_levels = self.config.get('education_levels', {})
+        
+        # Load language indicators from config
+        self.language_indicators = self.config.get('language_indicators', {})
 
     def preprocess_text(self, text: str) -> str:
         """Clean and normalize text for better matching"""
@@ -168,8 +70,8 @@ class CVParser:
 
     def detect_language(self, text: str) -> str:
         """Simple language detection based on common words"""
-        french_indicators = ['étudiant', 'ingénieur', 'université', 'stage', 'recherche', 'compétences']
-        english_indicators = ['student', 'engineer', 'university', 'internship', 'looking', 'skills']
+        french_indicators = self.language_indicators.get('french', [])
+        english_indicators = self.language_indicators.get('english', [])
         
         french_count = sum(1 for word in french_indicators if word in text.lower())
         english_count = sum(1 for word in english_indicators if word in text.lower())
@@ -181,7 +83,12 @@ class CVParser:
         matches = {}
         confidence_scores = {}
         
-        for status_type, patterns in self.status_patterns.items():
+        for status_key, patterns in self.status_patterns.items():
+            try:
+                status_type = StatusType(status_key)
+            except ValueError:
+                continue
+                
             if language in patterns:
                 status_matches = []
                 for pattern in patterns[language]:
@@ -241,7 +148,10 @@ class CVParser:
         for level_name, patterns in levels_config.items():
             for pattern in patterns:
                 if re.search(pattern, text, re.IGNORECASE):
-                    return OccupationLevel(level_name)
+                    try:
+                        return OccupationLevel(level_name)
+                    except ValueError:
+                        continue
         
         # Default level based on education indicators
         for level_name, patterns in self.education_levels.items():
@@ -288,17 +198,15 @@ class CVParser:
 # Example usage and testing
 def test_parser():
     parser = CVParser()
-    file = 'tests/test.pdf'
+    file = 'tests/karim.pdf'
     text = PyMuPDFLayoutAnalyzer(file).extract_with_layout_analysis()
     res = parser.parse_cv(text)
-    print("======= Text ======")
-    print(text)
     print("===================")
-
     print(f"Status: {res.status}")
     print(f"Occupation: {res.occupation}")
     print(f"Occupation level: {res.occupation_level}")
     print(f"Confidence score: {res.confidence_score}")
 
+ 
 if __name__ == '__main__':
     test_parser()

@@ -75,13 +75,41 @@
     "projects", "projets", "certifications", "certificats", "achievements", "réalisations"
   ],
   "skills": [
-    "python", "java", "javascript", "html", "css", "react", "angular", "node.js", 
-    "sql", "mysql", "mongodb", "docker", "git", "linux", "windows", "excel", "word", 
-    "power bi", "tableau", "tensorflow", "pytorch", "opencv", "scikit-learn", "jira", 
-    "agile", "scrum", "kanban", "figma", "photoshop", "after effects", "illustrator", 
-    "machine learning", "deep learning", "nlp", "data analysis", "data science", 
-    "big data", "cloud", "aws", "azure", "gcp", "project management", 
-    "communication", "problem solving", "leadership", "collaboration", "C++"
+    "python", "java", "javascript", "html", "css", "react", "angular", "node.js",
+    "sql", "mysql", "postgresql", "mongodb", "firebase",
+    "c langue", "c++", "c#", "go", "swift", "kotlin", "bash", "programming",
+    "git", "docker", "kubernetes", "linux", "windows",
+    "tensorflow", "pytorch", "scikit-learn", "opencv", "nlp", "machine learning", "deep learning",
+    "power bi", "tableau", "excel", "word", "access",
+    "jira", "confluence", "trello",
+    "agile", "scrum", "kanban",
+
+    "photoshop", "illustrator", "figma", "xd", "after effects", "lightroom", "indesign", "premiere", "blender", "canva",
+
+    "seo", "sem", "google ads", "facebook ads", "email marketing", "copywriting", "content creation",
+    "market research", "branding", "crm", "hubspot", "mailchimp", "social media", "analytics",
+
+    "project management", "risk management", "business strategy", "budgeting", "forecasting",
+    "erp", "sap", "oracle", "quickbooks", "xero",
+    "financial analysis", "auditing", "accounting", "bookkeeping", "cost control",
+    "ms office", "microsoft 365", "powerpoint", "visio",
+
+    "data analysis", "data visualization", "big data", "hadoop", "spark",
+    "aws", "azure", "gcp", "cloud computing", "devops",
+
+    "communication", "leadership", "teamwork", "collaboration", "adaptability",
+    "problem solving", "critical thinking", "creativity", "time management", "attention to detail",
+
+    "lesson planning", "pedagogy", "curriculum design", "edtech", "moodle", "blackboard",
+
+    "recruitment", "talent acquisition", "onboarding", "hrms", "people management",
+    "administration", "scheduling", "document management",
+
+    "nursing", "patient care", "clinical research", "biology", "chemistry", "pharmaceuticals",
+    "epidemiology", "health informatics", "laboratory analysis", "medical imaging",
+
+    "autocad", "solidworks", "matlab", "simulink", "ansys", "electronics", "robotics",
+    "3d modeling", "manufacturing", "mechanical design"
   ],
   "skills_headers": [
     "skill", "skills", "compétence", "compétences", "technical skills", "technologies", 
@@ -94,7 +122,8 @@
   "degree_keywords": [
     "licence", "license", "bachelor", "master", "maîtrise", "engineer", "ingénieur", 
     "diploma", "diplôme", "phd", "doctorat", "bts", "dut", "bac", "deug", "mba", 
-    "msc", "bac+2", "bac+3", "bac+5", "certification"
+    "msc", "mastère", "mastère spécialisé", "cpge", "classes préparatoires", "prépa",
+    "bac+2", "bac+3", "bac+5", "certification", "cycle ingénieur", "cycle d’ingénieur"
   ],
   "cutoff_words": [
     " and ", " but ", " however ", " moreover ", " whereas ", " also ", 
@@ -132,9 +161,148 @@
     "Baccalauréat": [
         "bac", "baccalauréat", "baccalaureate", "high school diploma",
         "baccalauréat sciences", "bac sciences"
+    ],
+    "Specialized technician":[
+      "technicien spécialisé", 
+      "diplôme de technicien spécialisé", 
+      "diplôme professionnel",
+      "technicien en gros oeuvre",
+      "technicien en électromécanique"
     ]
   },
   "institutions":  ["university", "school", "institute", "faculty", "polytechnic", "université", "école", "faculté", "institut", "ensam", "ensa","ensiasd", "académie", "sup"],
-  "profile_headers": ["profile", "summary", "about me", "objective", "résumé", "objectif", "profil"]
+  "profile_headers": ["profile", "summary", "about me", "objective", "résumé", "objectif", "profil"],
+  "status_prototype" : {
+    "student": [
+        "i am a student", "currently studying", "pursuing a degree",
+        "final year student", "enrolled in a university"
+    ],
+    "fresh_graduate": [
+        "recent graduate", "just graduated", "bachelor's degree completed",
+        "i have recently finished my degree"
+    ],
+    "intern": [
+        "looking for an internship", "seeking internship",
+        "internship position", "available for internship"
+    ],
+    "professional": [
+        "working as", "i am a professional", "experience in", "currently employed"
+    ]
+  },
+  "status_patterns": {
+    "looking_for_internship": {
+      "french": [
+        "recherche.*stage", "stage.*professionnel", "stagiaire",
+        "opportunit[ée].*stage", "stage.*entreprise", "stage.*mois",
+        "stage.*application", "recherche.*d'un.*stage"
+      ],
+      "english": [
+        "looking.*internship", "seeking.*internship", "intern.*position",
+        "internship.*opportunity", "student.*intern", "summer.*intern",
+        "internship.*program", "applying.*internship"
+      ]
+    },
+    "looking_for_full_time": {
+      "french": [
+        "recherche.*emploi", "poste.*temps.*plein", "cdi", 
+        "emploi.*permanent", "carr[iè]ere.*professionnel", 
+        "opportunit[ée].*professionnel",
+        "recherche.*CDI"
+      ],
+      "english": [
+        "full.?time.*position", "permanent.*position", "career.*opportunity",
+        "seeking.*employment", "job.*opportunity", "professional.*role"
+      ]
+    },
+    "student": {
+      "french": [
+        "[eé]tudiant", "cycle.*ing[eé]nieur", "master", "licence",
+        "universit[eé]", "[eé]cole", "formation", "cursus"
+      ],
+      "english": [
+        "student", "undergraduate", "graduate", "pursuing.*degree",
+        "master.*student", "bachelor.*student", "enrolled"
+      ]
+    }
+  },
+  "occupation_patterns": {
+    "ai_engineer": {
+      "patterns": {
+        "french": ["ing[eé]nieur.*ia", "intelligence.*artificielle", "ia.*ing[eé]nieur"],
+        "english": ["ai.*engineer", "artificial.*intelligence.*engineer", "ml.*engineer"]
+      },
+      "levels": {
+        "student": ["[eé]tudiant", "student", "apprentice"],
+        "junior": ["junior", "d[eé]butant", "entry.?level"],
+        "senior": ["senior", "exp[eé]riment[eé]", "lead"]
+      }
+    },
+    "data_scientist": {
+      "patterns": {
+        "french": ["data.*scientist", "scientifique.*donn[eé]es", "analyste.*donn[eé]es"],
+        "english": ["data.*scientist", "data.*analyst", "data.*engineer"]
+      },
+      "levels": {
+        "student": ["[eé]tudiant", "student"],
+        "junior": ["junior", "associate"],
+        "senior": ["senior", "lead", "principal"]
+      }
+    },
+    "software_engineer": {
+      "patterns": {
+        "french": ["ing[eé]nieur.*logiciel", "d[eé]veloppeur", "programmeur"],
+        "english": ["software.*engineer", "developer", "programmer", "software.*developer"]
+      },
+      "levels": {
+        "student": ["[eé]tudiant", "student"],
+        "junior": ["junior", "entry.?level"],
+        "senior": ["senior", "lead", "principal", "staff"]
+      }
+    },
+    "computer_science_student": {
+      "patterns": {
+        "french": ["informatique", "sciences.*informatiques", "ing[eé]nieur.*informatique"],
+        "english": ["computer.*science", "computer.*scientist", "cs.*student"]
+      },
+      "levels": {
+        "student": ["[eé]tudiant", "student", "bachelor", "master", "licence"]
+      }
+    },
+    "industrial_engineer": {
+      "patterns": {
+        "french": ["ing[eé]nieur.*industriel", "g[eé]nie.*industriel"],
+        "english": ["industrial.*engineer", "manufacturing.*engineer"]
+      },
+      "levels": {
+        "student": ["[eé]tudiant", "student"],
+        "junior": ["junior", "associate"],
+        "senior": ["senior", "lead"]
+      }
+    },
+    "business_student": {
+      "patterns": {
+        "french": ["gestion", "management", "commerce", "[eé]conomie"],
+        "english": ["business", "management", "economics", "finance"]
+      },
+      "levels": {
+        "student": ["[eé]tudiant", "student", "bachelor", "master"]
+      }
+    }
+  },
+  "education_levels": {
+      "high_school": ["baccalauréat", "bac", "high school diploma"],
+      "preparatory": ["cpge", "prépa", "classes préparatoires"],
+      "technician": ["dut", "bts", "deug", "bac\\+2"],
+      "bachelor": ["licence", "bachelor", "bac\\+3", "maîtrise", "deug","bac + 3"],
+      "master": ["master", "msc", "mba", "mastère", "mastère spécialisé", "bac\\+5"],
+      "engineer": ["ing[eé]nieur", "cycle.*ing[eé]nieur", "formation.*ing[eé]nieur"],
+      "phd": ["doctorat", "phd", "th[eè]se"]
+    },
+  "language_indicators": {
+    "french": ["étudiant", "ingénieur", "université", "stage", "recherche", "compétences"],
+    "english": ["student", "engineer", "university", "internship", "looking", "skills"]
+  }
 
+
+  
 }

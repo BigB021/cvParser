@@ -1,33 +1,15 @@
 import re
-import json
 from unidecode import unidecode
 from rapidfuzz import fuzz,process
 import sys
 import os
 
-# === Load config.json ===
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','..','constants', 'config.json')
-with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-    CONFIG = json.load(f)
-
-# === Import layout analyzer ===
+# === Import layout analyzer and hlper classes ===
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from layout_analyser import PyMuPDFLayoutAnalyzer
+from utils.helper import Helper
 
-# === Helpers ===
-def normalize_text(text):
-    if not text:
-        return ""
-    text = unidecode(text.lower().strip())
-    text = re.sub(r'\s+', ' ', text)
-    return text
-
-def is_education_section(lines, index, window=3):
-    education_indicators = CONFIG.get("education_headers", [])
-    start = max(0, index - window)
-    end = min(len(lines), index + window)
-    context = ' '.join(lines[start:end]).lower()
-    return any(indicator in context for indicator in education_indicators)
+helper = Helper()
 
 FIELDS = [
     "informatique", "computer science", "gestion", "management",
@@ -41,7 +23,7 @@ FIELDS = [
 
 
 def extract_clean_field(text, degree_match):
-    text = normalize_text(text)
+    text = helper.normalize_text(text)
     best_match = None
     best_score = 0
 
@@ -55,26 +37,14 @@ def extract_clean_field(text, degree_match):
     for pattern in patterns:
         matches = re.findall(pattern, text, re.IGNORECASE)
         for raw_field in matches:
-            field = clean_field_name(raw_field)
+            field = helper.clean_field_name(raw_field)
             match, score,_ = process.extractOne(field, FIELDS, scorer=fuzz.token_sort_ratio)
             if score > best_score and score > 70:
                 best_match, best_score = match, score
 
     return best_match.title() if best_match else None
 
-def clean_field_name(field):
-    noise_patterns = [
-        r'\b(?:degree|diploma|programme|program|formation|cycle|year|annee|niveau)\b',
-        r'\([^)]*\)',  # remove (xx)
-        r'[^\w\s-]',   # remove punctuation
-        r'\s{2,}',     # collapse multiple spaces
-    ]
-    field = field.lower()
-    for pattern in noise_patterns:
-        field = re.sub(pattern, ' ', field, flags=re.IGNORECASE)
 
-    field = ' '.join(field.split())  # Remove extra spaces
-    return field.strip()
 
 
 def extract_year_range(text):
@@ -92,7 +62,7 @@ def extract_year_range(text):
 
 
 def extract_institution(lines, index, window=2):
-    keywords = CONFIG.get("institutions", [])
+    keywords = helper.config.get("institutions", [])
     patterns = [
         rf"({'|'.join(keywords)})\s+[a-z\s]+",
         r'[A-Z][a-z]+\s+(?:University|School|Institute|Faculty)'
@@ -108,21 +78,21 @@ def extract_institution(lines, index, window=2):
                     return match.group().strip()
     return None
 
-def extract_degrees_precise(text):
+def extract_degrees(text, debug=False):
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     results = []
     seen_degrees = set()
-    aliases_dict = CONFIG.get("degree_aliases", {})
+    aliases_dict = helper.config.get("degree_aliases", {})
 
     for idx, line in enumerate(lines):
         if len(line) < 5:
             continue
 
-        norm_line = normalize_text(line)
+        norm_line = helper.normalize_text(line)
         if any(skip in norm_line for skip in ['email', 'phone', 'linkedin', 'github', 'skills', 'projects', 'languages']):
             continue
 
-        if not is_education_section(lines, idx):
+        if not helper.is_education_section(lines, idx):
             continue
 
         best_match = None
@@ -130,9 +100,9 @@ def extract_degrees_precise(text):
 
         for degree, aliases in aliases_dict.items():
             for alias in aliases:
-                score = fuzz.token_set_ratio(norm_line, normalize_text(alias))
+                score = fuzz.token_set_ratio(norm_line, helper.normalize_text(alias))
                 if score > 85 and score > best_score:
-                    if normalize_text(alias) in norm_line or fuzz.partial_ratio(norm_line, normalize_text(alias)) > 90:
+                    if helper.normalize_text(alias) in norm_line or fuzz.partial_ratio(norm_line, helper.normalize_text(alias)) > 90:
                         best_match = degree
                         best_score = score
 
@@ -156,23 +126,44 @@ def extract_degrees_precise(text):
                 }
                 results.append(degree_data)
 
+    # Filter invalid fields like "project", etc.
     valid_results = []
     for result in results:
         if result['field'] and any(word in result['field'].lower() for word in ['project', 'algorithm', 'visualization', 'tool']):
             continue
         valid_results.append(result)
 
-    return valid_results
+    # Return detailed results if debug is enabled
+    if debug:
+        return valid_results
 
-# === TESTING ===
+    # Otherwise, return simplified formatted strings
+    simplified = []
+    for res in valid_results:
+        degree = res["degree"]
+        field = res["field"]
+        institution = res["institution"]
+
+        parts = [degree]
+        if field:
+            parts.append(f"in {field}")
+        if institution:
+            parts.append(f"at {institution}")
+
+        simplified.append(" ".join(parts))
+
+    return simplified
+
+
+# Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = "tests/imran.pdf"
+    pdf_path = "tests/youssef.pdf"
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     print(f"file:{pdf_path}")
     print("\n=== Formatted text ===")
     print(text)
-    #print("\n=== Degrees ===")
-    results = extract_degrees_precise(text)
-    #for result in results:
-        #print(f"Degree: {result['degree']}, Field: {result['field']}, Year: {result['year_range']}")
+    print("\n=== Degrees ===")
+    results = extract_degrees(text)
+    for result in results:
+        print(f"Degree: {result['degree']}, Field: {result['field']}, Year: {result['year_range']}")
