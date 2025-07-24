@@ -1,132 +1,136 @@
-import re
-from typing import List, Optional, Tuple
-import os
-import json
-import sys
 import spacy
-from rapidfuzz import process, fuzz
-from langdetect import detect
-
-# === Load config.json ===
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','..','constants', 'config.json')
-with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-    CONFIG = json.load(f)
+from spacy.matcher import PhraseMatcher
+import re
+import json
+from pathlib import Path
+from typing import Tuple
+import numpy as np
+import os
+import sys
 
 # === Import layout analyzer ===
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from layout_analyser import PyMuPDFLayoutAnalyzer
 
-# Load SpaCy models
-nlp_en = spacy.load("en_core_web_md")
-nlp_fr = spacy.load("fr_core_news_sm")
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','..','constants', 'config.json')
+with open(CONFIG_PATH, "r") as f:
+    CONFIG = json.load(f)
 
-# === Define status & occupation mappings ===
-NORMALIZED_STATUS_MAP = {
-    # French
-    "recherche de stage": "Looking for Internship",
-    "recherche d'emploi": "Looking for Full-Time",
-    "cherche un stage": "Looking for Internship",
-    "disponible pour cdi": "Looking for CDI",
-    "cherche un emploi": "Looking for Full-Time",
-    "travail à temps partiel": "Looking for Part-Time",
-    "stage professionnel": "Looking for Internship",
-    "recherche d'une opportunité": "Looking for Opportunity",
+nlp = spacy.load("en_core_web_md")
+matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
 
-    # English
-    "looking for internship": "Looking for Internship",
-    "seeking internship": "Looking for Internship",
-    "available for full time": "Looking for Full-Time",
-    "looking for job": "Looking for Full-Time",
-    "seeking full time": "Looking for Full-Time",
-    "available for part time": "Looking for Part-Time",
-    "looking for part time": "Looking for Part-Time",
-    "available for cdi": "Looking for CDI",
-    "seeking opportunity": "Looking for Opportunity",
+# Use all canonical_job_titles values for matcher patterns
+phrase_patterns = []
+for titles in CONFIG["canonical_job_titles"].values():
+    phrase_patterns.extend([nlp.make_doc(title) for title in titles])
+matcher.add("OCCUPATION", phrase_patterns)
+
+# Prototypes for status detection
+STATUS_PROTOTYPES = {
+    "student": [
+        "i am a student", "currently studying", "pursuing a degree",
+        "final year student", "enrolled in a university"
+    ],
+    "fresh_graduate": [
+        "recent graduate", "just graduated", "bachelor's degree completed",
+        "i have recently finished my degree"
+    ],
+    "intern": [
+        "looking for an internship", "seeking internship",
+        "internship position", "available for internship"
+    ],
+    "professional": [
+        "working as", "i am a professional", "experience in", "currently employed"
+    ]
 }
 
-NORMALIZED_OCCUPATION_MAP = {
-    # French
-    "étudiant": "Student",
-    "étudiant en informatique": "CS Student",
-    "étudiant cycle ingénieur": "Engineering Student",
-    "stagiaire": "Intern",
-    "développeur junior": "Junior Developer",
-    "jeune diplômé": "Graduate",
-    "ingénieur data": "Data Engineer",
-    "ingénieur intelligence artificielle": "AI Engineer",
+class ExtractionResult:
+    def __init__(self, occupation: str, level: str, status: str, confidence: float):
+        self.occupation = occupation
+        self.level = level
+        self.status = status
+        self.confidence = round(confidence, 3)
 
-    # English
-    "student": "Student",
-    "computer science student": "CS Student",
-    "engineering student": "Engineering Student",
-    "intern": "Intern",
-    "junior developer": "Junior Developer",
-    "fresh graduate": "Graduate",
-    "trainee": "Intern",
-    "data engineer": "Data Engineer",
-    "ai engineer": "AI Engineer",
-    "machine learning engineer": "ML Engineer",
-}
+    def to_dict(self):
+        return {
+            "occupation": self.occupation,
+            "level": self.level,
+            "status": self.status,
+            "confidence": self.confidence,
+        }
 
-STATUS_CANDIDATES = list(NORMALIZED_STATUS_MAP.keys())
-OCCUPATION_CANDIDATES = list(NORMALIZED_OCCUPATION_MAP.keys())
+class StatusOccupationExtractor:
+    def __init__(self):
+        self.config = CONFIG
 
-# === Utility Functions ===
-def detect_language(text: str) -> str:
-    try:
-        lang = detect(text)
-        return lang if lang in ["fr", "en"] else "en"
-    except:
-        return "en"
+    def clean_text(self, text: str) -> str:
+        return re.sub(r"\s+", " ", text.strip().lower())
 
-def extract_candidate_phrases(text: str, lang: str) -> List[str]:
-    nlp = nlp_fr if lang == "fr" else nlp_en
-    doc = nlp(text)
-    phrases = set()
+    def get_header(self, text: str) -> str:
+        header = text[:500]
+        return self.clean_text(header)
 
-    for np in doc.noun_chunks:
-        phrase = np.text.strip().lower()
-        if 4 < len(phrase) < 100:
-            phrases.add(phrase)
+    def detect_status_semantic(self, doc: spacy.tokens.Doc) -> Tuple[str, float]:
+        best_status = "unknown"
+        best_score = 0.0
+        for label, phrases in STATUS_PROTOTYPES.items():
+            for phrase in phrases:
+                sim = nlp(phrase).similarity(doc)
+                if sim > best_score:
+                    best_status = label
+                    best_score = sim
+        return best_status, best_score
 
-    for sent in doc.sents:
-        sent_text = sent.text.strip().lower()
-        if any(kw in sent_text for kw in ["student", "étudiant", "intern", "stagiaire", "job", "emploi", "stage", "looking", "recherche", "available", "disponible", "engineer", "ingénieur"]):
-            phrases.add(sent_text)
+    def extract_occupation(self, doc: spacy.tokens.Doc) -> Tuple[str, str, float]:
+        matches = matcher(doc)
+        if matches:
+            best_span = max([doc[start:end] for _, start, end in matches], key=lambda span: len(span.text))
+            occupation = best_span.text.lower()
+            conf = 1.0
+        else:
+            best_title = None
+            best_score = 0.0
+            doc_vector = doc.vector
+            for canonical, titles in self.config["canonical_job_titles"].items():
+                for title in titles:
+                    title_vector = nlp(title).vector
+                    sim = np.dot(title_vector, doc_vector) / (np.linalg.norm(title_vector) * np.linalg.norm(doc_vector) + 1e-8)
+                    if sim > best_score:
+                        best_score = sim
+                        best_title = canonical
+            occupation = best_title if best_score > 0.7 else "unknown"
+            conf = best_score
 
-    return list(phrases)
+        level = "Unknown"
+        for lvl, keywords in self.config.get("education_levels", {}).items():
+            if any(k.lower() in doc.text.lower() for k in keywords):
+                level = lvl.capitalize()
+                break
 
-def fuzzy_match(phrases: List[str], candidates: List[str], threshold: int = 70) -> Optional[str]:
-    best_score = 0
-    best_match = None
-    for phrase in phrases:
-        match, score, _ = process.extractOne(phrase, candidates, scorer=fuzz.token_sort_ratio)
-        if score > best_score and score >= threshold:
-            best_match = match
-            best_score = score
-    return best_match
+        return occupation, level, conf
 
-def extract_status_and_occupation(text: str) -> Tuple[Optional[str], Optional[str]]:
-    lang = detect_language(text)
-    phrases = extract_candidate_phrases(text, lang)
+    def parse_cv(self, text: str) -> ExtractionResult:
+        header_text = self.get_header(text)
+        doc = nlp(header_text)
 
-    raw_status = fuzzy_match(phrases, STATUS_CANDIDATES)
-    raw_occupation = fuzzy_match(phrases, OCCUPATION_CANDIDATES)
+        status, status_conf = self.detect_status_semantic(doc)
+        occupation, level, occ_conf = self.extract_occupation(doc)
 
-    status = NORMALIZED_STATUS_MAP.get(raw_status) if raw_status else None
-    occupation = NORMALIZED_OCCUPATION_MAP.get(raw_occupation) if raw_occupation else None
+        confidence = round((status_conf + occ_conf) / 2, 3)
+        return ExtractionResult(occupation, level, status, confidence)
 
-    return status, occupation
-
-# === Example Usage ===
-if __name__ == '__main__':
-    pdf_path = "tests/karim.pdf"
-    analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
-    text = analyzer.extract_with_layout_analysis()
-    print("\n=== Formatted text ===")
+# Test
+if __name__ == "__main__":
+    file = 'tests/oumaima.pdf'
+    text = PyMuPDFLayoutAnalyzer(file).extract_with_layout_analysis()
+    print("======= Text ======")
     print(text)
+    print("===================")
 
-    print("\n==================")
-    status, occupation = extract_status_and_occupation(text)
-    print(f"Extracted Status: {status}")
-    print(f"Extracted Occupation: {occupation}")
+    extractor = StatusOccupationExtractor()
+    res = extractor.parse_cv(text)
+    print(res.to_dict())
+    print(f"Status: {res.status}")
+    print(f"Occupation: {res.occupation}")
+    print(f"Occupation level: {res.level}")
+    print(f"Confidence score: {res.confidence}")

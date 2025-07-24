@@ -560,7 +560,7 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing module)
 if __name__ == "__main__":
     try:
-        pdf_path = "tests/karim.pdf"
+        pdf_path = "tests/nigga.pdf"
         result = process_pdf_with_pymupdf(pdf_path)
 
         degrees_dict = result['degrees']
