@@ -112,6 +112,8 @@ def add_resume(data):
                 cursor.close()
             if db:
                 db.close()
+
+            print(f"[Debug] added to db successfully")
         except:
             pass
 

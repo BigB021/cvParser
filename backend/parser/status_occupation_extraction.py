@@ -129,7 +129,8 @@ def _extract_level( text: str, occupation: str) -> OccupationLevel:
                     return OccupationLevel.STUDENT
     
     return OccupationLevel.UNKNOWN
-def parse_cv( cv_text: str) -> ExtractionResult:
+
+def parce_status_and_occupation( cv_text: str) -> ExtractionResult:
     """Main parsing function"""
     # Preprocess text
     processed_text = helper.preprocess_text(cv_text)
@@ -163,7 +164,7 @@ def parse_cv( cv_text: str) -> ExtractionResult:
 def test_parser():
     file = 'tests/karim.pdf'
     text = PyMuPDFLayoutAnalyzer(file).extract_with_layout_analysis()
-    res = parse_cv(text)
+    res = parce_status_and_occupation(text)
 
 
     print("===================")

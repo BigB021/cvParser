@@ -1,9 +1,9 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from parser.cv_parser import process_and_store_resume
 from models.resume import (
     get_all_resumes,
     get_resume_by_id,
@@ -76,3 +76,26 @@ def filter_resumes():
     result = filter_resumes(keyword, city, degree, min_exp)
     status = 200 if result["status"] == "success" else 404
     return jsonify(result), status
+
+
+@resume_bp.route("/upload", methods=["POST"])
+def upload_resume():
+    if 'file' not in request.files:
+        return jsonify({"status": "error", "message": "No file part"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"status": "error", "message": "No selected file"}), 400
+
+    # Save file temporarily
+    upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(upload_path)
+
+    # Process and store resume
+    try:
+        data = process_and_store_resume(upload_path)
+        # Optionally delete the file after processing
+        os.remove(upload_path)
+        return jsonify({"status": "success", "data": data}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

@@ -28,7 +28,7 @@ class Helper:
         backend_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
         config_path = os.path.join(backend_root, 'parser', 'utils', 'constants', 'config.json')
 
-        print(f"[Debug] config path:{config_path}")
+        #print(f"[Debug] config path:{config_path}")
 
         if not os.path.exists(config_path):
             raise FileNotFoundError(f"[ERROR] Configuration file '{config_path}' not found.")

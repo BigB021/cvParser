@@ -6,7 +6,7 @@ from rapidfuzz import process
 from typing import List
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.helper import Helper
+from parser.utils.helper import Helper
 from layout_analyser import PyMuPDFLayoutAnalyzer
 
 helper = Helper()
