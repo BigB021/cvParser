@@ -11,7 +11,7 @@ from models.resume import (
     get_resumes_by_name,
     add_resume,
     delete_resume,
-    filter_resumes
+    apply_filters
 )
 
 resume_bp = Blueprint("resume", __name__, url_prefix="/resumes")
@@ -73,7 +73,7 @@ def filter_resumes():
     degree = request.args.get("degree")
     min_exp = request.args.get("min_exp")
 
-    result = filter_resumes(keyword, city, degree, min_exp)
+    result = apply_filters(keyword, city, degree, min_exp)
     status = 200 if result["status"] == "success" else 404
     return jsonify(result), status
 

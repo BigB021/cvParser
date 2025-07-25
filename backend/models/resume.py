@@ -211,7 +211,7 @@ def get_resumes_by_name(name):
         cursor.close()
         db.close()
 
-def filter_resumes(keyword=None, city=None, degree=None, min_exp=None):
+def apply_filters(keyword=None, city=None, degree=None, min_exp=None):
     try:
         db = get_connection()
         cursor = db.cursor(dictionary=True)
