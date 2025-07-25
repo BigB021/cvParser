@@ -5,20 +5,14 @@ import json
 from unidecode import unidecode
 from typing import List
 
-
-# === Load config.json ===
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..','..','constants', 'config.json')
-with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-    CONFIG = json.load(f)
-
-# === Import layout analyzer ===
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from layout_analyser import PyMuPDFLayoutAnalyzer
+#from layout_analyser import PyMuPDFLayoutAnalyzer
+
 
 
 class Helper:
     def __init__(self):
-        self.config = CONFIG
+        self.config = self.load_config()
         self.status_patterns = self.config.get('status_patterns', {})
         self.occupation_patterns = self.config.get('occupation_patterns', {})
         self.education_levels = self.config.get('education_levels', {})        
@@ -26,6 +20,22 @@ class Helper:
         self.cities = self.config.get('cities', [])
         self.skills = self.config.get('skills', [])
         self.skills_headers = self.config.get('skills_headers', [])
+
+
+    
+    def load_config(self):
+        # Remonte jusqu’à `backend/` depuis ce fichier
+        backend_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+        config_path = os.path.join(backend_root, 'parser', 'utils', 'constants', 'config.json')
+
+        print(f"[Debug] config path:{config_path}")
+
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"[ERROR] Configuration file '{config_path}' not found.")
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
     def preprocess_text(self, text: str) -> str:
         """Clean and normalize text for better matching"""
         # Convert to lowercase

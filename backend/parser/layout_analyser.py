@@ -7,9 +7,15 @@ import json
 import os
 import io
 import re
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils.helper import Helper
+
+hepler = Helper()
 
 class PyMuPDFLayoutAnalyzer:
-    def __init__(self, pdf_path: str, config_path: str = "../constants/config.json", lang="en"):
+    def __init__(self, pdf_path: str, config: dict = hepler.config, lang="en"):
         self.pdf_path = pdf_path
         self.doc = fitz.open(pdf_path)
 
@@ -22,15 +28,9 @@ class PyMuPDFLayoutAnalyzer:
         self.lang = lang
         self.ocr_lang = "eng+fra"  # for pytesseract
 
-        # Load config
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Configuration file '{config_path}' not found.")
-        
-        with open(config_path, "r") as f:
-            config = json.load(f)
-            self.config = config  
-            self.section_headers = [h.upper() for h in config.get("section_headers", [])]
-            self.blacklist_headers = set(config.get("blacklist_headers", []))
+        self.config = config  
+        self.section_headers = [h.upper() for h in config.get("section_headers", [])]
+        self.blacklist_headers = set(config.get("blacklist_headers", []))
 
     def extract_with_layout_analysis(self) -> str:
         """Main extraction loop with layout + OCR fallback"""

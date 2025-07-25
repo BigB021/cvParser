@@ -16,7 +16,7 @@ helper = Helper()
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = "tests/youssef.pdf"
+    pdf_path = os.path.join(os.path.dirname(__file__), "tests", "oumaima.pdf")
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     # Preprocess text
