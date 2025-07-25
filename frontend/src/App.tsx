@@ -1,11 +1,12 @@
 import './App.css'
+import ResumeTester from './components/ResumeTester'
 
 function App() {
 
   return (
     <>
     <div>
-      <h1 className='text-red-500 text-xl '>Yaw Yaw </h1>
+      <ResumeTester/>
     </div>
     </>
   )
