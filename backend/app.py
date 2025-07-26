@@ -10,9 +10,9 @@ app.config['UPLOAD_FOLDER'] = "/home/youssef/Desktop/menara-holdings/cvParser/ba
 app.register_blueprint(resume_bp)
 
 
-@app.route("/")
-def home():
-    return "yaw yaw"
+# @app.route("/")
+# def home():
+#     return "yaw yaw"
 
 
 if __name__ == "__main__":
