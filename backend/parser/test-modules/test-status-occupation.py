@@ -198,7 +198,7 @@ class CVParser:
 # Example usage and testing
 def test_parser():
     parser = CVParser()
-    file = 'tests/karim.pdf'
+    file = 'pdfs/karim.pdf'
     text = PyMuPDFLayoutAnalyzer(file).extract_with_layout_analysis()
     res = parser.parse_cv(text)
     print("===================")

@@ -61,7 +61,7 @@ def process_and_store_resume(pdf_path):
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = os.path.join(os.path.dirname(__file__), "tests", "oumaima.pdf")
+    pdf_path = os.path.join(os.path.dirname(__file__), "pdfs", "oumaima.pdf")
     resume_data = parse_pdf_to_data(pdf_path)
 
     #print(f"text: {text}")

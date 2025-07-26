@@ -41,7 +41,7 @@ def extract_phone_number(text: str) -> Optional[str]:
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = "tests/oumaima.pdf"
+    pdf_path = "pdfs/oumaima.pdf"
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     # print(text)

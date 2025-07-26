@@ -162,7 +162,7 @@ def parce_status_and_occupation( cv_text: str) -> ExtractionResult:
 
 # Example usage and testing
 def test_parser():
-    file = 'tests/karim.pdf'
+    file = 'pdfs/karim.pdf'
     text = PyMuPDFLayoutAnalyzer(file).extract_with_layout_analysis()
     res = parce_status_and_occupation(text)
 

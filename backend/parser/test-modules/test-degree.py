@@ -166,7 +166,7 @@ def extract_degrees_precise(text):
 
 # === TESTING ===
 if __name__ == "__main__":
-    pdf_path = "tests/imran.pdf"
+    pdf_path = "pdfs/imran.pdf"
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     print(f"file:{pdf_path}")

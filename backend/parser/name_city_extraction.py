@@ -113,7 +113,7 @@ def extract_city(text: str, city_list: List[str], score_threshold: int = 88) -> 
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = "tests/bouras.pdf"
+    pdf_path = "pdfs/bouras.pdf"
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     print(f"file:{pdf_path}")

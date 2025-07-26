@@ -157,7 +157,7 @@ def extract_degrees(text, debug=False):
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = "tests/youssef.pdf"
+    pdf_path = "pdfs/youssef.pdf"
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     print(f"file:{pdf_path}")
