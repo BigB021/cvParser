@@ -3,31 +3,54 @@ This is the backend of the CV Parser project, designed to extract structured dat
 
 ## Architecture Overview
 
-backend/
-│
-├── app.py                        # Flask app entry point
-├── routes/                       # All API route logic
-│   └── router.py
-│
-├── models/                       # DB schema & database interaction
-│   └── resume.py
-│
-├── parser/                       # Core extraction logic
-│   ├── cv_parser.py             # Orchestrates full parsing flow
-│   ├── layout_analyser.py       # PDF reader + layout/OCR engine
-│   ├── name_city_extraction.py
-│   ├── email_phone_extraction.py
-│   ├── skills_experience_extraction.py
-│   ├── status_occupation_extraction.py
-│   ├── degree_extraction.py
-│   ├── utils/
-│   │   ├── helper.py            # Text utils, config, cities/skills/etc.
-│   │   └── constants/           # Data files (JSON, lists)
-│   ├── pdfs/                   # Real PDFs for testing
-│   └── test-modules/            # Dev testing of isolated modules
-│
-├── temp/                         # Temporary folder for uploaded PDFs
-└── .env                          # Environment variables (DB credentials, etc.)
+Project Structure:
+
+- app.py:
+Main entry point for the Flask backend.
+
+- routes/:
+Handles all routing logic for the REST API.
+    - router.py: Main API routes and endpoints.
+
+- models/:
+Database schema and interaction layer.
+
+    - resume.py: Resume model and DB functions (add, fetch, delete, filter, etc.).
+
+- parser/:
+Handles all CV parsing and information extraction logic.
+
+    - cv_parser.py: Coordinates full resume parsing and DB insertion.
+
+    - layout_analyser.py: Handles PDF reading, layout detection, and OCR fallback.
+
+    - name_city_extraction.py: Extracts candidate name and city using NLP + heuristics.
+
+    - email_phone_extraction.py: Regex-based email/phone number extraction.
+
+    - skills_experience_extraction.py: Extracts technical and soft skills + years of experience.
+
+    - status_occupation_extraction.py: Extracts employment status and job title.
+
+    - degree_extraction.py: Extracts degrees (type, subject) using rule-based logic.
+
+    - utils/:
+
+        - helper.py: Utility class for text normalization, section detection, etc.
+
+        - constants/: Static data files (e.g., cities, job titles, skill lists).
+
+- parser/tests/:
+Collection of real PDF files for functional testing.
+
+- parser/test-modules/:
+Standalone scripts to test individual modules (degree, layout, etc.).
+
+- temp/:
+Temporary storage folder for uploaded CVs before processing.
+
+- .env:
+Environment configuration file (MySQL credentials, paths, etc.).
 
 ## Features
 - Upload and parse PDFs with layout + OCR fallback.
