@@ -125,7 +125,7 @@ def extract_experience_years(text: str, debug: bool = False) -> int:
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = "pdfs/youssef.pdf"
+    pdf_path = os.path.join(os.path.dirname(__file__), ".." ,"pdfs", sys.argv[1]+ ".pdf" if len(sys.argv) > 1 else "youssef.pdf")
     analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
     text = analyzer.extract_with_layout_analysis()
     print(f"file:{pdf_path}")

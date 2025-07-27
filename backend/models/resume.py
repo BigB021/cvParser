@@ -75,21 +75,32 @@ def add_resume(data):
         db = get_connection()
         cursor = db.cursor()
 
+        pdf_filename = None
+        if 'pdf_path' in data and data['pdf_path']:
+            pdf_filename = os.path.basename(data['pdf_path'])
+        else:
+            pdf_filename = None  # Ou une valeur par défaut si tu veux
+
+
         sql_resume = """
             INSERT INTO resumes (name, email, phone, occupation, exp_years, city, status, pdf_path)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(sql_resume, (
             data['name'], data['email'], data['phone'], data.get('occupation'),
-            data.get('exp_years'), data.get('city'), data.get('status'), data['pdf_path']
+            data.get('exp_years'), data.get('city'), data.get('status'), pdf_filename
         ))
         resume_id = cursor.lastrowid
 
         for degree in data.get('degrees', []):
+            degree_type = degree  # degree is a string here
+            degree_subject = None  # no subject available
+
             cursor.execute("""
                 INSERT INTO degrees (resume_id, degree_type, degree_subject)
                 VALUES (%s, %s, %s)
-            """, (resume_id, degree['type'], degree['subject']))
+            """, (resume_id, degree_type, degree_subject))
+
 
         for skill in data.get('skills', []):
             cursor.execute("""
@@ -150,12 +161,19 @@ def get_all_resumes():
     try:
         db = get_connection()
         cursor = db.cursor(dictionary=True)
+
         cursor.execute("SELECT * FROM resumes")
-        results = cursor.fetchall()
+        resumes = cursor.fetchall()
+
+        for resume in resumes:
+            resume_id = resume['id']
+            resume['degrees'] = fetch_degrees(cursor, resume_id)
+            resume['skills'] = fetch_skills(cursor, resume_id)
+
         return {
             "status": "success",
-            "data": results,
-            "message": "Resumes retrieved." if results else "No resumes found."
+            "data": resumes,
+            "message": "Resumes retrieved." if resumes else "No resumes found."
         }
     except mysql.connector.Error as e:
         return {"status": "error", "message": str(e)}
@@ -163,14 +181,19 @@ def get_all_resumes():
         cursor.close()
         db.close()
 
+
 def get_resume_by_id(resume_id):
     try:
         db = get_connection()
         cursor = db.cursor(dictionary=True)
+
         cursor.execute("SELECT * FROM resumes WHERE id = %s", (resume_id,))
-        result = cursor.fetchone()
-        if result:
-            return {"status": "success", "data": result}
+        resume = cursor.fetchone()
+
+        if resume:
+            resume['degrees'] = fetch_degrees(cursor, resume_id)
+            resume['skills'] = fetch_skills(cursor, resume_id)
+            return {"status": "success", "data": resume}
         else:
             return {"status": "not_found", "message": f"No resume with ID {resume_id}"}
     except mysql.connector.Error as e:
@@ -179,14 +202,20 @@ def get_resume_by_id(resume_id):
         cursor.close()
         db.close()
 
+
 def get_resume_by_email(email):
     try:
         db = get_connection()
         cursor = db.cursor(dictionary=True)
+
         cursor.execute("SELECT * FROM resumes WHERE email = %s", (email,))
-        result = cursor.fetchone()
-        if result:
-            return {"status": "success", "data": result}
+        resume = cursor.fetchone()
+
+        if resume:
+            resume_id = resume['id']
+            resume['degrees'] = fetch_degrees(cursor, resume_id)
+            resume['skills'] = fetch_skills(cursor, resume_id)
+            return {"status": "success", "data": resume}
         else:
             return {"status": "not_found", "message": f"No resume found for email {email}"}
     except mysql.connector.Error as e:
@@ -195,14 +224,19 @@ def get_resume_by_email(email):
         cursor.close()
         db.close()
 
+
 def get_resumes_by_name(name):
     try:
         db = get_connection()
         cursor = db.cursor(dictionary=True)
         cursor.execute("SELECT * FROM resumes WHERE name LIKE %s", (f"%{name}%",))
-        results = cursor.fetchall()
-        if results:
-            return {"status": "success", "data": results}
+        resume = cursor.fetchone()
+
+        if resume:
+            resume_id = resume['id']
+            resume['degrees'] = fetch_degrees(cursor, resume_id)
+            resume['skills'] = fetch_skills(cursor, resume_id)
+            return {"status": "success", "data": resume}
         else:
             return {"status": "not_found", "message": f"No resumes found with name like '{name}'"}
     except mysql.connector.Error as e:
@@ -211,7 +245,7 @@ def get_resumes_by_name(name):
         cursor.close()
         db.close()
 
-def apply_filters(keyword=None, city=None, degree=None, min_exp=None):
+def apply_filters(keyword=None, city=None, degree=None, skill=None, min_exp=None):
     try:
         db = get_connection()
         cursor = db.cursor(dictionary=True)
@@ -220,6 +254,7 @@ def apply_filters(keyword=None, city=None, degree=None, min_exp=None):
         SELECT DISTINCT r.*
         FROM resumes r
         LEFT JOIN degrees d ON r.id = d.resume_id
+        LEFT JOIN skills s ON r.id = s.resume_id
         WHERE 1=1
         """
         values = []
@@ -233,8 +268,12 @@ def apply_filters(keyword=None, city=None, degree=None, min_exp=None):
             values.append(city)
 
         if degree:
-            query += " AND d.degree_type LIKE %s"
-            values.append(f"%{degree}%")
+            query += " AND (d.degree_type LIKE %s OR d.degree_subject LIKE %s)"
+            values += [f"%{degree}%", f"%{degree}%"]
+
+        if skill:
+            query += " AND s.skill_name LIKE %s"
+            values.append(f"%{skill}%")
 
         if min_exp:
             query += " AND r.exp_years >= %s"
@@ -242,6 +281,12 @@ def apply_filters(keyword=None, city=None, degree=None, min_exp=None):
 
         cursor.execute(query, tuple(values))
         results = cursor.fetchall()
+
+        # Embed degrees and skills for each result
+        for resume in results:
+            resume_id = resume['id']
+            resume['degrees'] = fetch_degrees(cursor, resume_id)
+            resume['skills'] = fetch_skills(cursor, resume_id)
 
         return {
             "status": "success",
@@ -253,5 +298,14 @@ def apply_filters(keyword=None, city=None, degree=None, min_exp=None):
     finally:
         cursor.close()
         db.close()
+
+
+def fetch_degrees(cursor, resume_id):
+    cursor.execute("SELECT degree_type, degree_subject FROM degrees WHERE resume_id = %s", (resume_id,))
+    return cursor.fetchall()
+
+def fetch_skills(cursor, resume_id):
+    cursor.execute("SELECT skill_name FROM skills WHERE resume_id = %s", (resume_id,))
+    return [row['skill_name'] for row in cursor.fetchall()]
 
 # todo: add update_resume method if needed

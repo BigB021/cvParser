@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, send_from_directory
 import sys
 import os
 
@@ -95,7 +95,12 @@ def upload_resume():
     try:
         data = process_and_store_resume(upload_path)
         # Optionally delete the file after processing
-        os.remove(upload_path)
+        #os.remove(upload_path)
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# Serve the pdf folder as static files 
+@resume_bp.route("/pdfs/<path:filename>", methods=["GET"])
+def serve_pdf(filename):
+    return send_from_directory('pdfs', filename)

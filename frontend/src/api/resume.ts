@@ -83,3 +83,7 @@ export async function uploadResume(file: File): Promise<Resume> {
   if (data.status !== 'success') throw new Error(data.message);
   return data.data;
 }
+
+export function getPdfUrl(pdfFilename: string): string {
+  return `${API_BASE}/resumes/pdfs/${encodeURIComponent(pdfFilename)}`;
+}

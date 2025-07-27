@@ -45,7 +45,8 @@ def parse_pdf_to_data(pdf_path):
         "degrees": extract_degrees(text),
         "occupation": occupation,
         "exp_years": extract_experience_years(experience_section),
-        "skills": extract_skills(text, helper.skills, helper.skills_headers)
+        "skills": extract_skills(text, helper.skills, helper.skills_headers),
+        "pdf_path": pdf_path,
 
     }
     return resume_data
@@ -61,8 +62,9 @@ def process_and_store_resume(pdf_path):
 
 # Main execution (testing)
 if __name__ == "__main__":
-    pdf_path = os.path.join(os.path.dirname(__file__), "pdfs", "oumaima.pdf")
+    pdf_path = os.path.join(os.path.dirname(__file__), ".." ,"pdfs", sys.argv[1]+ ".pdf" if len(sys.argv) > 1 else "youssef.pdf")
     resume_data = parse_pdf_to_data(pdf_path)
+    process_and_store_resume(pdf_path)
 
     #print(f"text: {text}")
     print(f"======================================")

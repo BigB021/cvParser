@@ -565,7 +565,7 @@ def process_pdf_with_pymupdf(pdf_path: str) -> Dict:
 # Main execution (testing)
 if __name__ == "__main__":
     try:
-        pdf_path = "pdfs/karim.pdf"
+        pdf_path = os.path.join(os.path.dirname(__file__), ".." ,"pdfs", sys.argv[1]+ ".pdf" if len(sys.argv) > 1 else "youssef.pdf")
         result = process_pdf_with_pymupdf(pdf_path)
 
         degrees_dict = result['degrees']

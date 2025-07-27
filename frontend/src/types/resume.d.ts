@@ -1,4 +1,3 @@
-// types/Resume.ts
 export interface Resume {
   id: number;
   name: string;
@@ -9,4 +8,9 @@ export interface Resume {
   city: string;
   status: string;
   pdf_path: string;
+  degrees: {
+    degree_type: string;
+    degree_subject: string;
+  }[];
+  skills: string[];
 }
