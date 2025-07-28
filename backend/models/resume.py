@@ -260,7 +260,7 @@ def apply_filters(keyword=None, city=None, degree=None, skill=None, min_exp=None
         values = []
 
         if keyword:
-            query += " AND (r.occupation LIKE %s OR r.status LIKE %s)"
+            query += " AND (LOWER(r.occupation) LIKE LOWER(%s) OR LOWER(r.status) LIKE LOWER(%s))"
             values += [f"%{keyword}%", f"%{keyword}%"]
 
         if city:
@@ -268,11 +268,11 @@ def apply_filters(keyword=None, city=None, degree=None, skill=None, min_exp=None
             values.append(city)
 
         if degree:
-            query += " AND (d.degree_type LIKE %s OR d.degree_subject LIKE %s)"
+            query += " AND (LOWER(d.degree_type) LIKE %s OR LOWER(d.degree_subject) LIKE %s)"
             values += [f"%{degree}%", f"%{degree}%"]
 
         if skill:
-            query += " AND s.skill_name LIKE %s"
+            query += " AND LOWER(s.skill_name) LIKE LOWER(%s)"
             values.append(f"%{skill}%")
 
         if min_exp:

@@ -54,6 +54,7 @@ export interface FilterOptions {
   keyword?: string;
   city?: string;
   degree?: string;
+  skill?: string;
   min_exp?: number;
 }
 
@@ -62,10 +63,12 @@ export async function filterResumes(options: FilterOptions): Promise<Resume[]> {
   if (options.keyword) params.append('keyword', options.keyword);
   if (options.city) params.append('city', options.city);
   if (options.degree) params.append('degree', options.degree);
+  if (options.skill) params.append('skill', options.skill);
   if (options.min_exp !== undefined) params.append('min_exp', String(options.min_exp));
 
   const res = await fetch(`${API_BASE}/resumes/filter?${params.toString()}`);
   const data = await res.json();
+  console.log('[Debug] Filter response:', data);
   if (data.status !== 'success') throw new Error(data.message);
   return data.data;
 }

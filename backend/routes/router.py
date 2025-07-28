@@ -71,9 +71,10 @@ def filter_resumes():
     keyword = request.args.get("keyword")
     city = request.args.get("city")
     degree = request.args.get("degree")
+    skill = request.args.get("skill") 
     min_exp = request.args.get("min_exp")
 
-    result = apply_filters(keyword, city, degree, min_exp)
+    result = apply_filters(keyword, city, degree, skill, min_exp)
     status = 200 if result["status"] == "success" else 404
     return jsonify(result), status
 

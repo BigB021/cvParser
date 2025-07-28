@@ -18,6 +18,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilter }) => {
     const [keyword, setKeyword] = useState('');
     const [city, setCity] = useState('');
     const [degree, setDegree] = useState('');
+    const [skill, setSkill] = useState('');
     const [minExp, setMinExp] = useState<number | ''>('');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -26,6 +27,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilter }) => {
             keyword: keyword.trim() || undefined,
             city: city.trim() || undefined,
             degree: degree || undefined,
+            skill: skill.trim() || undefined,
             min_exp: minExp === '' ? undefined : Number(minExp),
         });
     };
@@ -41,7 +43,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilter }) => {
                     type="text"
                     value={keyword}
                     onChange={e => setKeyword(e.target.value)}
-                    placeholder="Name, occupation..."
+                    placeholder="Name, occupation, status..."
                     className="border rounded px-2 py-1 w-40"
                 />
             </div>
@@ -68,6 +70,16 @@ const FilterBar: React.FC<FilterBarProps> = ({ onFilter }) => {
                         </option>
                     ))}
                 </select>
+            </div>
+            <div>
+                <label className="block text-sm font-medium mb-1">Skill</label>
+                <input
+                    type="text"
+                    value={skill}
+                    onChange={e => setSkill(e.target.value)}
+                    placeholder="Skill"
+                    className="border rounded px-2 py-1 w-32"
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Min. Experience (years)</label>
