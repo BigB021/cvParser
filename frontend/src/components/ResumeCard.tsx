@@ -1,19 +1,22 @@
 import React from 'react';
 import type { Resume } from '../types/resume';
 import { getPdfUrl } from '../api/resume';
+import axios from 'axios';
 
 interface ResumeCardProps {
     resume: Resume;
+    onDelete?: (id: number) => void;
 }
 
 const statusStyles: Record<string, string> = {
-    accepted: 'bg-green-500 text-white',
-    rejected: 'bg-red-500 text-white',
-    pending: 'bg-orange-500 text-white',
+    accepted: 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-green-200',
+    rejected: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200',
+    pending: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-200',
 };
 
-export const ResumeCard: React.FC<ResumeCardProps> = ({ resume }) => {
+export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
     const {
+        id,
         name,
         email,
         phone,
@@ -28,131 +31,188 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume }) => {
 
     const canAccessPDF = pdf_path && pdf_path.trim() !== '';
     const pdfUrl = canAccessPDF ? getPdfUrl(pdf_path) : '';
+    
+    const handleDelete = async () => {
+        if (!window.confirm(`Are you sure you want to delete ${name}'s resume?`)) return;
+
+        try {
+            await axios.delete(`http://localhost:5000/resumes/${id}`);
+            if (onDelete) onDelete(id);
+        } catch (error) {
+            alert('Failed to delete resume.');
+            console.error(error);
+        }
+    };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 my-4 shadow-sm hover:shadow-md transition-shadow duration-200 max-w-md mx-auto sm:mx-0">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">
-                    {name}
-                </h2>
-                <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium capitalize inline-block self-start ${
-                        statusStyles[status] || 'bg-gray-500 text-white'
-                    }`}
-                >
-                    {status}
-                </span>
-            </div>
-
-            {/* Details */}
-            <div className="space-y-3 text-sm sm:text-base">
-                <Detail label="Occupation" value={occupation} />
-                <Detail
-                    label="Experience"
-                    value={`${exp_years} ${exp_years === 1 ? 'year' : 'years'}`}
-                />
-                <Detail label="City" value={city} />
-                <Detail
-                    label="Email"
-                    value={
-                        <a
-                            href={`mailto:${email}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 break-all"
-                        >
-                            {email}
-                        </a>
-                    }
-                />
-                <Detail
-                    label="Phone"
-                    value={
-                        <a
-                            href={`tel:${phone}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200"
-                        >
-                            {phone}
-                        </a>
-                    }
-                />
-            </div>
+        <div className="group bg-white border border-gray-200 rounded-2xl p-6 my-4 shadow-lg hover:shadow-2xl transition-all duration-300 max-w-md mx-auto sm:mx-0 hover:-translate-y-1 relative overflow-hidden">
+            {/* Decorative gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
-            {/* Degrees */}
-            {degrees.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Degrees</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                        {degrees.map((degree, index) => (
-                            <li key={index} className="text-gray-700">
-                                {degree.degree_type} in {degree.degree_subject}
-                            </li>
-                        ))}
-                    </ul>
+            {/* Content */}
+            <div className="relative z-10">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                    <div className="flex-1">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-1 group-hover:text-blue-900 transition-colors duration-300">
+                            {name}
+                        </h2>
+                        <p className="text-gray-600 font-medium text-lg">{occupation}</p>
+                    </div>
+                    <span
+                        className={`px-4 py-2 rounded-full text-sm font-semibold capitalize inline-block self-start shadow-lg ${
+                            statusStyles[status] || 'bg-gray-500 text-white shadow-gray-200'
+                        } ${statusStyles[status]?.includes('shadow-') ? 'shadow-lg' : ''}`}
+                    >
+                        {status}
+                    </span>
                 </div>
-            )}
 
-            {/* Skills */}
-            {skills.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Skills</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                        {skills.map((skill, index) => (
-                            <li key={index} className="text-gray-700">
-                                {skill}
-                            </li>
-                        ))}
-                    </ul>
+                {/* Key Info Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <InfoCard 
+                        icon="📍"
+                        label="Location"
+                        value={city}
+                    />
+                    <InfoCard 
+                        icon="⏱️"
+                        label="Experience"
+                        value={`${exp_years} ${exp_years === 1 ? 'year' : 'years'}`}
+                    />
                 </div>
-            )}
 
-            {/* PDF Actions */}
-            <div className="mt-6 pt-4 border-t border-gray-100 flex gap-3 flex-wrap">
-                {canAccessPDF ? (
-                    <>
-                        <a
-                            href={pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                            </svg>
-                            View PDF
-                        </a>
-                        <a
-                            href={pdfUrl}
-                            download
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-white border border-blue-400 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3M12 4v8"
-                                />
-                            </svg>
-                            Download PDF
-                        </a>
-                    </>
-                ) : (
-                    <span className="text-red-500 text-sm italic">No PDF available</span>
+                {/* Contact Information */}
+                <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 mb-6 border border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center">
+                        <span className="mr-2">📞</span>
+                        Contact Information
+                    </h3>
+                    <div className="space-y-3">
+                        <ContactDetail
+                            icon="✉️"
+                            value={
+                                <a
+                                    href={`mailto:${email}`}
+                                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 break-all font-medium"
+                                >
+                                    {email}
+                                </a>
+                            }
+                        />
+                        <ContactDetail
+                            icon="📱"
+                            value={
+                                <a
+                                    href={`tel:${phone}`}
+                                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 font-medium"
+                                >
+                                    {phone}
+                                </a>
+                            }
+                        />
+                    </div>
+                </div>
+                
+                {/* Degrees */}
+                {degrees.length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                            <span className="mr-2">🎓</span>
+                            Education
+                        </h3>
+                        <div className="space-y-2">
+                            {degrees.map((degree, index) => (
+                                <div key={index} className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-3 border-l-4 border-indigo-400">
+                                    <span className="text-gray-800 font-medium">
+                                        {degree.degree_type} in {degree.degree_subject}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
+
+                {/* Skills */}
+                {skills.length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                            <span className="mr-2">🛠️</span>
+                            Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            {skills.map((skill, index) => (
+                                <span
+                                    key={index}
+                                    className="inline-block bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium border border-blue-200 hover:from-blue-200 hover:to-indigo-200 transition-colors duration-200"
+                                >
+                                    {skill}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Actions */}
+                <div className="pt-6 border-t border-gray-200 flex gap-3 flex-wrap">
+                    {canAccessPDF ? (
+                        <>
+                            <a
+                                href={pdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            >
+                                <span className="mr-2">👀</span>
+                                View PDF
+                            </a>
+                            <a
+                                href={pdfUrl}
+                                download
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-blue-700 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                            >
+                                <span className="mr-2">💾</span>
+                                Download
+                            </a>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+                            <span className="text-red-600 text-sm font-medium flex items-center">
+                                <span className="mr-2">❌</span>
+                                No PDF available
+                            </span>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handleDelete}
+                        className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                        <span className="mr-2">🗑️</span>
+                        Delete
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
 
-const Detail: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
-    <div className="flex flex-col sm:flex-row sm:items-center">
-        <span className="font-semibold text-gray-700 min-w-fit pr-2">{label}:</span>
-        <span className="text-gray-600">{value}</span>
+const InfoCard: React.FC<{ icon: string; label: string; value: string }> = ({ icon, label, value }) => (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className="flex items-center">
+            <span className="text-2xl mr-3">{icon}</span>
+            <div>
+                <p className="text-sm font-medium text-gray-600">{label}</p>
+                <p className="text-lg font-semibold text-gray-900">{value}</p>
+            </div>
+        </div>
+    </div>
+);
+
+const ContactDetail: React.FC<{ icon: string; value: React.ReactNode }> = ({ icon, value }) => (
+    <div className="flex items-center">
+        <span className="text-lg mr-3">{icon}</span>
+        <div className="flex-1">{value}</div>
     </div>
 );
 

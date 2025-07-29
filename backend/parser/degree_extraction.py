@@ -11,83 +11,10 @@ from utils.helper import Helper
 
 helper = Helper()
 
-FIELDS = [
-    # Computer and Data
-    "computer science", "data science", "software engineering", "cybersecurity",
-    "artificial intelligence", "big data", "machine learning", "cloud computing",
-    "informatics", "programming",
-
-    # Mathematics and Sciences
-    "mathematics", "mathématiques", "physics", "physique",
-    "chemistry", "chimie", "biology", "biologie",
-    "statistics", "statistiques",
-    "electronic", "electronique", 
-    "electricty", "electrical engineering",
-    "électricité" ,  "génie électrique" ,
-
-    # Engineering
-    "engineering", "electrical engineering", "mechanical engineering",
-    "civil engineering", "industrial engineering", "chemical engineering",
-    "génie logiciel", "génie civil", "génie industriel"
-
-    # Business & Economics
-    "finance", "accounting", "comptabilité", "marketing", "economics",
-    "économie", "management", "gestion", "logistics", "logistique",
-    "supply chain", "business administration",
-
-    # Law & Social Sciences
-    "law", "droit", "political science", "psychology", "sociology",
-    "international relations", "public administration",
-
-    # Misc / interdisciplinary
-    "human resources", "education", "pedagogy", "environmental science",
-    "information systems", "communication", "design", "architecture"
-]
+FIELDS = helper.config.get("fields", [])
 
 
-FIELD_ALIASES = {
-    "computer science": ["informatique", "cs", "computing", "computer engineering", "computer systems", "software development"],
-    "software engineering": ["génie logiciel", "software dev", "programming", "développement logiciel", "development"],
-    "data science": ["big data", "science des données", "AI", "artificial intelligence", "intelligence artificielle", "machine learning", "ml", "deep learning"],
-    "cybersecurity": ["cybersécurité", "network security", "sécurité informatique", "ethical hacking"],
-
-    "mathematics": ["mathématiques", "maths", "applied mathematics", "pure mathematics", "mathematical sciences"],
-    "physics": ["physique", "physical sciences", "applied physics"],
-    "chemistry": ["chimie", "chemical sciences"],
-    "biology": ["biologie", "life sciences", "biotech", "biological sciences"],
-    "statistics": ["statistiques", "data analysis", "biostatistics"],
-    "electronics": ["électronique", "electronic engineering", "circuit design"],
-
-    "engineering": ["ingénierie", "engineering sciences", "génie"],
-    "electrical engineering": ["électrique", "electrical", "power systems", "electrotechnics"],
-    "mechanical engineering": ["mécanique", "mechanics", "génie mécanique"],
-    "civil engineering": ["génie civil", "bâtiment", "infrastructure engineering"],
-    "industrial engineering": ["génie industriel", "industrial systems", "industrial management"],
-    "chemical engineering": ["génie chimique", "process engineering"],
-
-    "economics": ["économie", "economic sciences", "business economics", "microéconomie", "macroéconomie"],
-    "finance": ["financial analysis", "financial management", "banking"],
-    "accounting": ["comptabilité", "audit", "accountancy", "financial reporting"],
-    "marketing": ["digital marketing", "strategic marketing", "communication marketing"],
-    "management": ["gestion", "business management", "project management", "strategic management"],
-    "logistics": ["logistique", "supply chain", "transport management", "operations management"],
-    "business administration": ["administration des affaires", "gestion d'entreprise"],
-
-    "law": ["droit", "juridique", "legal studies", "international law"],
-    "political science": ["sciences politiques", "relations internationales"],
-    "psychology": ["psychologie", "behavioral science", "cognitive science"],
-    "sociology": ["sociologie", "social sciences"],
-    "public administration": ["administration publique", "governance"],
-
-    "human resources": ["ressources humaines", "hr", "people management"],
-    "education": ["enseignement", "pedagogy", "formation", "didactics"],
-    "environmental science": ["sciences de l'environnement", "écologie", "environmental studies"],
-    "information systems": ["systèmes d'information", "management des systèmes d'information"],
-    "communication": ["media studies", "public relations", "communication marketing"],
-    "design": ["graphic design", "industrial design", "design thinking"],
-    "architecture": ["urban planning", "architectural studies", "urbanisme"]
-}
-
+FIELD_ALIASES = helper.config.get("field_aliases", {})
 
 def extract_clean_field(text, degree_match):
     text = helper.normalize_text(text)

@@ -24,13 +24,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleAddResume = (newResume: Resume) => {
+    setResumes(prev => [newResume, ...prev]);
+  };
+
+  const handleDeleteResume = (id: number) => {
+    setResumes(prev => prev.filter(r => r.id !== id));
+  };
+
   return (
     <div className="p-4 space-y-4">
       <FilterBar onFilter={handleFilter} />
-      <UploadForm />
+      <UploadForm  onUploadSuccess={handleAddResume}/>
       <div className="grid gap-4">
         {resumes.map(resume => (
-          <ResumeCard key={resume.id} resume={resume} />
+          
+          <ResumeCard key={resume.id} resume={resume} onDelete={handleDeleteResume} />
         ))}
       </div>
     </div>

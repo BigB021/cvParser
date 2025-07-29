@@ -91,19 +91,35 @@ class Helper:
         section_lines = []
         is_in_section = False
 
+        section_names_lower = [s.lower() for s in section_names]
+        next_section_names_lower = [s.lower() for s in next_section_names]
+
+        # print("[Debug] Section start headers:", section_names)
+        # print("[Debug] Section stop headers:", next_section_names)
+
+
         for line in lines:
             line_clean = line.strip().lower()
-            if any(header in line_clean for header in section_names):
-                #print(f"[DEBUG] Found start of section at: {line}")
-                is_in_section = True
-                continue
-            if is_in_section and any(header in line_clean for header in next_section_names):
-                #print(f"[DEBUG] Found end of section at: {line}")
-                break
-            if is_in_section:
+
+            # print(f"Line: '{line_clean}', In section: {is_in_section}")
+
+            if not is_in_section:
+                # Start of section found
+                if any(sec in line_clean for sec in section_names_lower):
+                    is_in_section = True
+                    # Optionally include header line itself:
+                    section_lines.append(line)
+                    continue
+            else:
+                # Check if reached next section header
+                if any(next_sec in line_clean for next_sec in next_section_names_lower):
+                    break
+                # Otherwise accumulate section lines
                 section_lines.append(line)
 
-        #print(f"[DEBUG] Extracted section content:\n{section_lines[:5]}...") 
-        return "\n".join(section_lines).strip()
+        extracted_text = "\n".join(section_lines).strip()
+        # Debug print extracted section length and snippet
+        print(f"[DEBUG] Extracted section text (length {len(extracted_text)}):\n{extracted_text[:300]}")
+        return extracted_text
 
 

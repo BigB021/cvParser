@@ -4,6 +4,8 @@ import os
 
 load_dotenv()
 
+PDF_DIR = os.path.join(os.path.dirname(__file__), "..", "pdfs")
+
 def get_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -134,18 +136,31 @@ def delete_resume(resume_id):
         db = get_connection()
         cursor = db.cursor()
 
+        cursor.execute("SELECT pdf_path FROM resumes WHERE id = %s", (resume_id,))
+        result = cursor.fetchone()
+
+        if not result:
+            return {"status": "error", "message": f"No resume found with ID {resume_id}"}
+
+        pdf_filename = result[0]
+        pdf_full_path = os.path.join(PDF_DIR, pdf_filename)
+
+
+
         cursor.execute("DELETE FROM resumes WHERE id = %s", (resume_id,))
         db.commit()
 
-        if cursor.rowcount == 0:
-            print(f"[!] No resume found with ID {resume_id}.")
-        else:
-            print(f"[-] Resume with ID {resume_id} deleted.")
+        if os.path.exists(pdf_full_path):
+            os.remove(pdf_full_path)
+            print(f"[Debug] Deleted resume with ID {resume_id} and removed PDF file {pdf_filename}.")
+
+        
+        return {"status": "success", "message": f"Resume with ID {resume_id} deleted."}
 
     except mysql.connector.Error as e:
-        print(f"[!] MySQL Error: {e}")
+        return {"status": "error", "message": f"MySQL Error: {e}"}
     except Exception as e:
-        print(f"[!] Unexpected Error: {e}")
+        return {"status": "error", "message": f"Unexpected Error: {e}"}
     finally:
         try:
             if cursor:
@@ -154,7 +169,6 @@ def delete_resume(resume_id):
                 db.close()
         except:
             pass
-
 
 
 def get_all_resumes():
@@ -260,8 +274,8 @@ def apply_filters(keyword=None, city=None, degree=None, skill=None, min_exp=None
         values = []
 
         if keyword:
-            query += " AND (LOWER(r.occupation) LIKE LOWER(%s) OR LOWER(r.status) LIKE LOWER(%s))"
-            values += [f"%{keyword}%", f"%{keyword}%"]
+            query += " AND (LOWER(r.occupation) LIKE LOWER(%s) OR LOWER(r.status) LIKE LOWER(%s) OR LOWER(r.name) LIKE LOWER(%s))"
+            values += [f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"]
 
         if city:
             query += " AND r.city = %s"

@@ -63,8 +63,10 @@ def create_resume():
 @resume_bp.route("/<int:resume_id>", methods=["DELETE"])
 def delete(resume_id):
     result = delete_resume(resume_id)
-    status = 200 if result["status"] == "success" else 404
-    return jsonify(result), status
+    if result["status"] == "error":
+        return jsonify(result), 404
+    return jsonify(result), 200
+
 
 @resume_bp.route("/filter", methods=["GET"])
 def filter_resumes():
@@ -95,7 +97,6 @@ def upload_resume():
     # Process and store resume
     try:
         data = process_and_store_resume(upload_path)
-        # Optionally delete the file after processing
         #os.remove(upload_path)
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:

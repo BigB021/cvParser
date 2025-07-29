@@ -5,6 +5,8 @@ from typing import Optional
 from rapidfuzz import process
 from typing import List
 
+from unidecode import unidecode
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from parser.utils.helper import Helper
 from layout_analyser import PyMuPDFLayoutAnalyzer
@@ -83,29 +85,38 @@ def _clean_name(name: str) -> str:
     return " ".join(cleaned)
 
 def extract_city(text: str, city_list: List[str], score_threshold: int = 88) -> Optional[str]:
-    """Extract Moroccan city from text using strict fuzzy matching."""
-    text = helper.normalize_text(text)
-    words = text.split()
+    """Extract Moroccan city from text with fuzzy matching ignoring accents and minor typos."""
+    norm_text = unidecode(text.lower())
+    words = norm_text.split()
     candidates = set()
-    # Add unigrams and bigrams (up to 2-word city names like 'el jadida')
+    
+    # unigram + bigram (2-words city names)
     for i in range(len(words)):
-        unigram = words[i]
-        bigram = f"{words[i]} {words[i+1]}" if i+1 < len(words) else ""
-        candidates.update([unigram.strip(",.;:()"), bigram.strip(",.;:()")])
-
-    # Filter short/meaningless candidates
+        unigram = words[i].strip(",.;:()")
+        if unigram:
+            candidates.add(unigram)
+        if i + 1 < len(words):
+            bigram = f"{words[i]} {words[i+1]}".strip(",.;:()")
+            if bigram:
+                candidates.add(bigram)
+    
+    # filter short candidates
     candidates = {c for c in candidates if len(c) >= 3}
+
+    # Create mapping normalized_city -> original city (to recover accented name)
+    norm_city_map = {unidecode(city.lower()): city for city in city_list}
 
     best_match = None
     best_score = 0
 
     for candidate in candidates:
-        match = process.extractOne(candidate, city_list)
+        # rapidfuzz extractOne compares against keys (norm_city_map keys)
+        match = process.extractOne(candidate, norm_city_map.keys())
         if match:
-            city_name, score = match[0],match[1]
+            matched_norm_city, score = match[0], match[1]
             if score > best_score and score >= score_threshold:
-                best_match = city_name
                 best_score = score
+                best_match = norm_city_map[matched_norm_city]  # return original accented city
 
     return best_match
 

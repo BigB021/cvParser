@@ -66,7 +66,11 @@ if __name__ == "__main__":
     
     process_and_store_resume(pdf_path)
 
-    #print(f"text: {text}")
+    if (sys.argv[2] == "debug"):
+        print(f"Debug mode enabled, printing resume data:")
+        analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
+        text = analyzer.extract_with_layout_analysis()
+        print(text)
     print(f"======================================")
     pprint.pprint(resume_data)
     print(f"======================================")
