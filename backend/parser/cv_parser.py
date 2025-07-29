@@ -12,7 +12,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from layout_analyser import PyMuPDFLayoutAnalyzer
 from utils.helper import Helper
 from models.resume import add_resume
-
 helper = Helper()
 
 
@@ -64,6 +63,7 @@ def process_and_store_resume(pdf_path):
 if __name__ == "__main__":
     pdf_path = os.path.join(os.path.dirname(__file__), ".." ,"pdfs", sys.argv[1]+ ".pdf" if len(sys.argv) > 1 else "youssef.pdf")
     resume_data = parse_pdf_to_data(pdf_path)
+    
     process_and_store_resume(pdf_path)
 
     #print(f"text: {text}")

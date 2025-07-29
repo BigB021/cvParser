@@ -58,6 +58,7 @@ FIELD_ALIASES = {
     "statistics": ["statistiques", "data analysis", "biostatistics"],
     "electronics": ["électronique", "electronic engineering", "circuit design"],
 
+
     "engineering": ["ingénierie", "engineering sciences", "génie"],
     "electrical engineering": ["électrique", "electrical", "power systems", "electrotechnics"],
     "mechanical engineering": ["mécanique", "mechanics", "génie mécanique"],
@@ -188,6 +189,7 @@ def scan_resume(lines: list[str], restrict_to_edu=True) -> list[dict]:
                     "confidence": score
                 })
     return results
+
 
 def extract_degrees(text: str, debug=False) -> list:
     lines = [l.strip() for l in text.splitlines() if l.strip()]

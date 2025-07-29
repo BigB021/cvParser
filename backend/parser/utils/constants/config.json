@@ -60,7 +60,7 @@
   },
   "cities": [
     "Casablanca", "Rabat", "Marrakech", "Fès", "Agadir", "Tanger", "Oujda", "Kénitra", "Salé", "Tétouan",
-    "Mohammedia", "El Jadida", "Meknès", "Béni Mellal", "Nador", "Settat", "Laâyoune", "Errachidia", "Essaouira"
+    "Mohammedia", "El Jadida", "Meknès", "Béni Mellal", "Nador", "Settat", "Laâyoune", "Errachidia", "Essaouira","Fes"
   ],
   "degrees": [
     "licence", "license", "bachelor", "maîtrise", "master", "phd", "doctorat", "engineering", 
@@ -142,13 +142,16 @@
         "brevet de technicien supérieur", "bts", "b.t.s."
     ],
     "Licence": [
-        "licence", "licence professionnelle", "licence science", 
-        "licence appliquée", "fundamental licence", "licence fondamentale",
-        "licences professionnelles"
+      "licence", "licence professionnelle", "licence science", 
+      "licence appliquée", "fundamental licence", "licence fondamentale",
+      "licences professionnelles", "bac \\+ 3", "bac\\+3", "bac plus 3",
+      "bachelor", "undergraduate degree"
     ],
+
     "Master": [
         "master", "msc", "maîtrise", "m2", "m1", "master's degree",
-        "master of", "master in", "masters"
+        "master of", "master in", "masters", "bac \\+ 5", "bac\\+5", "bac plus 5",
+        "master's", "master's program", "master's diploma", "master's level"
     ],
     "Engineer": [
         "ingénieur", "engineering degree", "engineer diploma",
@@ -159,8 +162,8 @@
         "phd", "doctorat", "doctoral degree", "ph.d", "doctorate"
     ],
     "Baccalauréat": [
-        "bac", "baccalauréat", "baccalaureate", "high school diploma",
-        "baccalauréat sciences", "bac sciences"
+        "baccalauréat", "baccalaureate", "high school diploma",
+        "baccalauréat sciences", "bac sciences","bac"
     ],
     "Specialized technician":[
       "technicien spécialisé", 

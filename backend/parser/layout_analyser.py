@@ -144,3 +144,11 @@ class PyMuPDFLayoutAnalyzer:
     def __del__(self):
         if hasattr(self, 'doc'):
             self.doc.close()
+
+
+if __name__ == "__main__":
+
+    pdf_path = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "pdfs", sys.argv[1] + ".pdf" if len(sys.argv) > 1 else "youssef.pdf"))
+    analyzer = PyMuPDFLayoutAnalyzer(pdf_path)
+    text = analyzer.extract_with_layout_analysis()
+    print(text)
