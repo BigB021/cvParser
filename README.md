@@ -33,7 +33,7 @@ cvParser/
 │ ├── parser/ # CV parsing modules (layout, skills, degrees, etc.)
 │ ├── routes/ # API routes
 │ ├── models/ # DB schema and logic
-│ ├── temp/ # Uploaded PDF storage
+│ ├── pdfs/ # Uploaded PDF storage
 │ ├── .env # Environment config (MySQL, etc.)
 │ └── requirements.txt
 └── frontend/
@@ -41,7 +41,7 @@ cvParser/
 │ ├── components/ # UI components (Dashboard, ResumeCard, etc.)
 │ ├── api/ # API request handlers
 │ ├── types/ # TypeScript type definitions
-├── .env # VITE_API_BASE
+├── .env.development # VITE_API_BASE
 └── vite.config.ts
 ```
 ---
