@@ -3,8 +3,9 @@ import sys
 import os
 import re
 import datetime
-from rapidfuzz import fuzz
-from typing import List
+from rapidfuzz import fuzz, process
+from typing import List, Set
+import unicodedata
 
 # === Import layout analyzer and hlper classes ===
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -14,10 +15,6 @@ from utils.helper import Helper
 helper = Helper()
 
 
-import re
-from rapidfuzz import fuzz, process
-from typing import List, Set
-import unicodedata
 
 
 def normalize_token(token: str) -> str:
@@ -70,6 +67,8 @@ def extract_experience_years(text: str, debug: bool = False) -> int:
         r'(\d{4})\s*[-–—]\s*(\d{4}|present|now|current)',
         r'(\d+)\+?\s+years',  # e.g. "5+ years"
         r'experience of (\d+) years',
+        r'(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s+\d{4}\s*[-–—]\s*(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s+(\d{4}|present|now|current)'
+
     ]
     current_year = datetime.datetime.now().year
     extracted_years = []

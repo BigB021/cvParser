@@ -315,7 +315,7 @@ def apply_filters(keyword=None, city=None, degree=None, skill=None, min_exp=None
 
 
 def fetch_degrees(cursor, resume_id):
-    cursor.execute("SELECT degree_type, degree_subject FROM degrees WHERE resume_id = %s", (resume_id,))
+    cursor.execute("SELECT DISTINCT degree_type, degree_subject FROM degrees WHERE resume_id = %s", (resume_id,))
     return cursor.fetchall()
 
 def fetch_skills(cursor, resume_id):

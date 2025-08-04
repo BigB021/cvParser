@@ -159,6 +159,7 @@ def extract_degrees(text: str, debug=False) -> list:
     ]
 
 
+
 if __name__ == "__main__":
     pdf_name = sys.argv[1] if len(sys.argv) > 1 else "youssef"
     pdf_path = os.path.join(os.path.dirname(__file__), "..", "pdfs", f"{pdf_name}.pdf")

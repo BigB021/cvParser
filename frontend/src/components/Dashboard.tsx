@@ -36,7 +36,7 @@ const Dashboard = () => {
     <div className="p-4 space-y-4">
       <FilterBar onFilter={handleFilter} />
       <UploadForm  onUploadSuccess={handleAddResume}/>
-      <div className="grid gap-4">
+      <div className="grid gap-4 justify-center">
         {resumes.map(resume => (
           
           <ResumeCard key={resume.id} resume={resume} onDelete={handleDeleteResume} />

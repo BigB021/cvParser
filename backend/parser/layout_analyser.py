@@ -3,7 +3,6 @@ import pytesseract
 from PIL import Image
 from typing import List, Dict
 import spacy
-import json
 import os
 import io
 import re

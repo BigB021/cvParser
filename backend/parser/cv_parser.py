@@ -34,7 +34,6 @@ def parse_pdf_to_data(pdf_path):
     occupation, occupation_level, occupation_confidence, occupation_matches = extract_occupation(text, language)
 
 
-    # Detect language
     resume_data = {
         "name": extract_name(text,analyzer),
         "email": extract_email(text),
@@ -48,6 +47,23 @@ def parse_pdf_to_data(pdf_path):
         "pdf_path": pdf_path,
 
     }
+
+    #debugging
+    print(f"======================================")
+    print(f"Text extracted from PDF:")
+    print(text)
+    print(f"======================================")
+    print(f"file:{pdf_path}")
+    print(f"Name: {resume_data['name']}")
+    print(f"Email: {resume_data['email']}")
+    print(f"Phone: {resume_data['phone']}")
+    print(f"City: {resume_data['city']}")
+    print(f"Status: {status.value} (Confidence: {status_confidence})")
+    print(f"Occupation: {occupation} (Level: {occupation_level}, Confidence: {occupation_confidence})")
+    print(f"Degrees: {resume_data['degrees']}")
+    print(f"Experience Years: {resume_data['exp_years']}")
+    print(f"Skills: {resume_data['skills']}")
+
     return resume_data
 
 # todo: implement error handling typshit and data verification ?
