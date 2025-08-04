@@ -7,7 +7,7 @@ Built with **React**, **TypeScript**, **Vite**, and **TailwindCSS**.
 ---
 
 ## 📁 Project Structure
-
+```yaml
 .
 ├── src
 │ ├── api # API helper functions to interact with the backend
@@ -26,7 +26,7 @@ Built with **React**, **TypeScript**, **Vite**, and **TailwindCSS**.
 ├── public # Public static files
 ├── vite.config.ts # Vite configuration
 └── tsconfig*.json # TypeScript configuration
-
+```
 
 ---
 
