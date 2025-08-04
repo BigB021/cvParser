@@ -1,69 +1,98 @@
-# React + TypeScript + Vite
+# CV Parser Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple frontend interface for parsing, filtering, and viewing resumes using a Flask + OCR backend.
 
-Currently, two official plugins are available:
+Built with **React**, **TypeScript**, **Vite**, and **TailwindCSS**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 📁 Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+.
+├── src
+│ ├── api # API helper functions to interact with the backend
+│ │ └── resume.ts
+│ ├── components # Reusable UI components
+│ │ ├── Dashboard.tsx # Main view showing all resumes
+│ │ ├── FilterBar.tsx # Filter inputs to narrow down resumes
+│ │ ├── ResumeCard.tsx # Individual resume display
+│ │ └── UploadForm.tsx # File uploader for PDF resumes
+│ ├── types # Type definitions
+│ │ └── resume.d.ts
+│ ├── App.tsx # Root component
+│ ├── main.tsx # App entry point
+│ ├── assets # Static assets (e.g., logos)
+│ └── styles (.css) # Tailwind and custom styles
+├── public # Public static files
+├── vite.config.ts # Vite configuration
+└── tsconfig*.json # TypeScript configuration
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/cv-parser-frontend.git
+cd cv-parser-frontend
 ```
+### 2. Install dependencies
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+### 3. Install dependencies
+Create a .env file at the root of the project
+```bash
+VITE_API_BASE=http://127.0.0.1:5000
+```
+### 4. Run the development server
+```bash
+npm run dev
+```
+---
+## Components Overview
+
+### Dashboard.tsx
+- Fetches and displays all resumes on load
+- Renders a list of <ResumeCard />
+- Includes:
+
+  - <FilterBar /> for filtering resumes by name, city, degree, experience
+
+  - <UploadForm /> for uploading new PDF files
+
+### ResumeCard.tsx
+Displays key resume information:
+- Full name
+- Email and phone
+- Degrees, experience, and skills
+- (Optional) CV link or ID
+  
+### FilterBar.tsx
+- Interactive filters for:
+- Name (keyword)
+- City
+- Degree type
+- Minimum experience 
+Calls filterResumes() from api/resume.ts and updates dashboard state.
+
+### UploadForm.tsx
+- Accepts a PDF file input
+- Submits to the backend /upload route using FormData
+- On success, triggers a resume refresh
+
+---
+## API Integration
+All resume-related API calls are defined in "src/api/resume.ts"
+## Types
+Located in "src/types/resume.d.ts". Defines the Resume object structure returned by the backend.
+---
+## Tooling
+- Vite – lightning-fast development server and bundler
+- React + TypeScript – component-based frontend with strong typing
+- Tailwind CSS – utility-first styling
+- ESLint – code linting and formatting
+- Prettier (optional) – consistent code formatting
