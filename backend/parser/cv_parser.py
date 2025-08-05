@@ -39,9 +39,9 @@ def parse_pdf_to_data(pdf_path):
         "email": extract_email(text),
         "phone": extract_phone_number(text),
         "city": extract_city(text,cities),
-        "status": status.value,
+        "status": status.value.replace('_',' ').title(),
         "degrees": extract_degrees(text),
-        "occupation": occupation,
+        "occupation": occupation.replace('_',' ').title(),
         "exp_years": extract_experience_years(experience_section),
         "skills": extract_skills(text, helper.skills, helper.skills_headers),
         "pdf_path": pdf_path,
@@ -70,7 +70,8 @@ def parse_pdf_to_data(pdf_path):
 def process_and_store_resume(pdf_path):
     resume_data = parse_pdf_to_data(pdf_path)
     print(f"[Debug] adding {resume_data['name']} resume to db..")
-    add_resume(resume_data)
+    resume_id = add_resume(resume_data)
+    resume_data['id'] = resume_id
 
     return resume_data
 

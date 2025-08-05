@@ -73,6 +73,7 @@ def init_database():
 
 
 def add_resume(data):
+    resume_id = None
     try:
         db = get_connection()
         cursor = db.cursor()
@@ -112,6 +113,7 @@ def add_resume(data):
 
         db.commit()
         print(f"[+] Resume '{data['name']}' inserted with ID {resume_id}.")
+        return resume_id
 
     except mysql.connector.IntegrityError as e:
         print(f"[!] Integrity Error: {e}")
@@ -125,10 +127,9 @@ def add_resume(data):
                 cursor.close()
             if db:
                 db.close()
-
-            print(f"[Debug] added to db successfully")
         except:
             pass
+    return None
 
 
 def delete_resume(resume_id):

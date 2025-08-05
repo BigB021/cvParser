@@ -19,45 +19,67 @@
   ],
   "canonical_job_titles": {
     "AI Engineer": [
-        "ai engineer", "artificial intelligence engineer", "ingénieur ia", 
-        "ingénieur intelligence artificielle", "machine learning engineer",
-        "data science engineer", "ai developer", "étudiant en première année cycle d'ingénieurs sciences des données",
-        "student engineer data science", "engineer artificial intelligence", "data science artificial intelligence",
-        "sciences des données big data ia", "intelligence artificielle et sciences des données",
-        "cycle d'ingénieurs sciences des données", "big data ia", "école nationale supérieure de l'intelligence artificielle"
+      "ai engineer", "artificial intelligence engineer", "ingénieur ia", "ingénieur intelligence artificielle",
+      "ml engineer", "machine learning engineer", "data science engineer", "ai developer", 
+      "développeur ia", "étudiant en intelligence artificielle", "student engineer data science",
+      "engineer artificial intelligence", "data science and ai", "intelligence artificielle",
+      "sciences des données big data ia", "big data ia", 
+      "cycle d'ingénieurs sciences des données", "élève ingénieur ia", "ai & data science engineer",
+      "master en intelligence artificielle", "ms intelligence artificielle"
     ],
     "Data Engineer": [
-        "data engineer", "engineer data", "ingénieur données", "ingénieur data", "data ingé",
-        "big data engineer", "data pipeline engineer", "ingénierie des systèmes d'information",
-        "systèmes d'information et réseaux"
+      "data engineer", "engineer data", "ingénieur données", "ingénieur data", "data ingé",
+      "big data engineer", "data pipeline engineer", "engineer big data", 
+      "ingénieur big data", "ingénieur en systèmes d'information", 
+      "ingénierie des systèmes d'information", "systèmes d'information et réseaux",
+      "gestion des bases de données", "master big data"
     ],
     "Data Scientist": [
-        "data scientist", "data science", "scientist data", "scientifique des données",
-        "data science specialist", "junior data scientist", "sciences des données"
+      "data scientist", "scientist data", "scientifique des données", "data science specialist",
+      "junior data scientist", "sciences des données", "spécialiste en data science",
+      "data analyste scientifique", "analyste en sciences des données", 
+      "expert data science", "ml scientist"
     ],
     "Data Analyst": [
-        "data analyst", "analyste données", "data science analyst",
-        "business data analyst", "junior data analyst", "informatique décisionnelle"
+      "data analyst", "analyste données", "data science analyst", "business data analyst",
+      "junior data analyst", "informatique décisionnelle", "analyste décisionnel",
+      "analyste data", "data business analyst", "analyste en data", 
+      "data & reporting analyst"
     ],
     "Industrial Engineer": [
-        "industrial engineer", "ingénieur industriel", "industrial engineering degree",
-        "student at ensam", "ensam meknes", "arts and crafts", "école nationale supérieure d'arts et métiers"
+      "industrial engineer", "ingénieur industriel", "industrial engineering", "génie industriel",
+      "student at ensam", "ensam meknes", "arts et métiers", "école nationale supérieure d'arts et métiers",
+      "élève ingénieur génie industriel", "ensam casa", "ensam maroc",
+      "génie mécanique et industriel"
     ],
     "Software Developer": [
-        "software developer", "software engineer", "developer", "développeur", 
-        "ingénieur logiciel", "web developer", "full stack developer", "développement web"
+      "software developer", "software engineer", "developer", "développeur", 
+      "ingénieur logiciel", "web developer", "full stack developer", "backend developer", 
+      "frontend developer", "développement web", "développeur web", "développeur full stack",
+      "developpeur logiciel", "développeur java", "dev web", "dev fullstack"
     ],
     "IT Technician": [
-        "technician", "technicien", "it support", "technicien informatique",
-        "support technique", "dut en informatique"
+      "technician", "technicien", "it support", "technicien informatique", 
+      "support technique", "technicien réseaux", "administrateur système", 
+      "technicien systèmes et réseaux", "technicien en informatique", 
+      "technicien maintenance", "technicien support", "dut informatique", "bts informatique"
     ],
     "Project Manager": [
-        "project manager", "gestionnaire projet", "chef de projet",
-        "project coordinator"
+      "project manager", "gestionnaire projet", "chef de projet", "project coordinator",
+      "coordinateur projet", "responsable projet", "gestion de projet", 
+      "consultant chef de projet", "manager de projet"
     ],
-    "Consultant": ["consultant", "consultante"],
-    "Teacher": ["enseignant", "formateur", "instructor"]
-  },
+    "Consultant": [
+      "consultant", "consultante", "consultant fonctionnel", "consultant technique", 
+      "consultant data", "consultant junior", "consultant en informatique", 
+      "consultant erp", "consultant décisionnel"
+    ],
+    "Teacher": [
+      "enseignant", "formateur", "instructor", "professeur", "enseignant vacataire",
+      "formateur professionnel", "enseignant chercheur", "enseignant informatique"
+    ]
+  }
+  ,
   "cities": [
     "Casablanca", "Rabat", "Marrakech","Marrakesh", "Fès", "Agadir", "Tanger", "Oujda", "Kénitra", "Salé", "Tétouan",
     "Mohammedia", "El Jadida", "Meknès", "Béni Mellal", "Nador", "Settat", "Laâyoune", "Errachidia", "Essaouira"
@@ -301,6 +323,7 @@
       "engineer": ["ing[eé]nieur", "cycle.*ing[eé]nieur", "formation.*ing[eé]nieur"],
       "phd": ["doctorat", "phd", "th[eè]se"]
     },
+    
   "language_indicators": {
     "french": ["étudiant", "ingénieur", "université", "stage", "recherche", "compétences"],
     "english": ["student", "engineer", "university", "internship", "looking", "skills"]
@@ -318,6 +341,9 @@
     "electricty", "electrical engineering",
     "électricité" ,  "génie électrique" ,
 
+    "construction", "bâtiment", "architecture", "urbanisme", "environment", "environnement",
+    "géotechnique", "hydraulique", "topographie", "VRD", "BTP",
+
     "engineering", "electrical engineering", "mechanical engineering",
     "civil engineering", "industrial engineering", "chemical engineering",
     "génie logiciel", "génie civil", "génie industriel",
@@ -330,7 +356,10 @@
     "international relations", "public administration",
 
     "human resources", "education", "pedagogy", "environmental science",
-    "information systems", "communication", "design", "architecture"
+    "information systems", "communication", "design", "architecture",
+    "marketing", "communication", "digital marketing", "publicité", "media",
+    "real estate", "immobilier", "urban planning", "promotion immobilière"
+
   ],
 
 
@@ -354,6 +383,9 @@
     "industrial engineering": ["génie industriel", "industrial systems", "industrial management"],
     "chemical engineering": ["génie chimique", "process engineering"],
 
+    "construction": ["BTP", "chantier", "travaux publics", "gros œuvre", "génie civil"],
+    "environment": ["environnement", "gestion des déchets", "recyclage", "développement durable"],
+
     "economics": ["économie", "economic sciences", "business economics", "microéconomie", "macroéconomie"],
     "finance": ["financial analysis", "financial management", "banking"],
     "accounting": ["comptabilité", "audit", "accountancy", "financial reporting"],
@@ -374,7 +406,9 @@
     "information systems": ["systèmes d'information", "management des systèmes d'information"],
     "communication": ["media studies", "public relations", "communication marketing"],
     "design": ["graphic design", "industrial design", "design thinking"],
-    "architecture": ["urban planning", "architectural studies", "urbanisme"]
+    "architecture": ["urban planning", "architectural studies", "urbanisme"],
+    "real estate": ["immobilier", "promotion immobilière", "urbanisme", "urban planning"]
+
   }
 
   

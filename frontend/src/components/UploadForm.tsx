@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadResume } from '../api/resume';
+import { uploadResume, fetchResumeById } from '../api/resume';
 import type { Resume } from '../types/resume';
 import {
   FilePlus, Upload, Trash2, FileCheck, FileDown, FolderOpen,
@@ -49,6 +49,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
     }
   };
 
+    
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a PDF resume to upload.');
@@ -59,16 +60,23 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
     setError(null);
 
     try {
-      const resume = await uploadResume(selectedFile);
-      setUploadedResume(resume);
+      // Step 1: Upload file and get the basic resume data including id
+      const uploadedResume = await uploadResume(selectedFile);
+
+      // Step 2: Use the returned id to fetch full resume details if needed
+      const freshResume = await fetchResumeById(uploadedResume.id);
+
+      setUploadedResume(freshResume);
       setSelectedFile(null);
-      if (onUploadSuccess) onUploadSuccess(resume);
+
+      if (onUploadSuccess) onUploadSuccess(freshResume);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to upload resume.');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-xl max-w-2xl mx-auto overflow-hidden">

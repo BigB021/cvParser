@@ -14,19 +14,14 @@ import {
   Trash2,
   GraduationCap,
   Hammer,
-  XCircle
+  XCircle,
+  Contact
 } from 'lucide-react';
 
 interface ResumeCardProps {
   resume: Resume;
   onDelete?: (id: number) => void;
 }
-
-const statusStyles: Record<string, string> = {
-  accepted: 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-green-200',
-  rejected: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200',
-  pending: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-200',
-};
 
 export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
   const {
@@ -72,11 +67,7 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
             </h2>
             <p className="text-gray-600 font-medium text-lg">{occupation}</p>
           </div>
-          <span
-            className={`px-4 py-2 rounded-full text-sm font-semibold capitalize inline-block self-start shadow-lg ${
-              statusStyles[status] || 'bg-gray-500 text-white shadow-gray-200'
-            } ${statusStyles[status]?.includes('shadow-') ? 'shadow-lg' : ''}`}
-          >
+          <span className="text-md text-gray-600 font-medium bg-rose-200 px-3 py-1 rounded-full">
             {status}
           </span>
         </div>
@@ -88,14 +79,16 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
         </div>
 
         {/* Contact */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 mb-6 border border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center">
-            <Phone className="mr-2" size={16} />
+        
+        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center">
+            <Contact className="mr-2" size={22} />
             Contact Information
-          </h3>
+        </h3>
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 mb-6 border border-gray-100">
+          
           <div className="space-y-3">
             <ContactDetail
-              icon={<Mail size={16} />}
+              icon={<Mail size={20} />}
               value={
                 <a
                   href={`mailto:${email}`}
@@ -106,7 +99,7 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
               }
             />
             <ContactDetail
-              icon={<Phone size={16} />}
+              icon={<Phone size={20} />}
               value={
                 <a
                   href={`tel:${phone}`}
@@ -123,7 +116,7 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
         {degrees.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
-              <GraduationCap className="mr-2" size={18} />
+              <GraduationCap className="mr-2" size={22} />
               Education
             </h3>
             <div className="space-y-2">
@@ -188,7 +181,7 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onDelete }) => {
           ) : (
             <div className="flex-1 flex items-center justify-center px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
               <span className="text-red-600 text-sm font-medium flex items-center">
-                <XCircle className="mr-2" size={16} />
+                <XCircle className="mr-2" size={20} />
                 No PDF available
               </span>
             </div>
