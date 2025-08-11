@@ -1,0 +1,10 @@
+Flask
+flask-cors
+pymysql
+rapidfuzz
+Unidecode
+PyMuPDF
+pytesseract
+Pillow
+spacy
+python-dotenv
